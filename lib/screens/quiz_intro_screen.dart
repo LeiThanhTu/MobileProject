@@ -14,14 +14,14 @@ class QuizIntroScreen extends StatefulWidget {
   _QuizIntroScreenState createState() => _QuizIntroScreenState();
 }
 
-class _QuizIntroScreenState extends State {
-  late Future<List> _questionsFuture;
-  final DatabaseHelper _dbHelper = DatabaseHelper();
+class _QuizIntroScreenState extends State<QuizIntroScreen> {
+  late Future<List<Question>> _questionsFuture;
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   @override
   void initState() {
     super.initState();
-    _questionsFuture = _dbHelper.getQuestionsByCategory((widget as QuizIntroScreen).category.id!);
+    _questionsFuture = _dbHelper.getQuestionsByCategory(widget.category.id!);
   }
 
   @override
@@ -35,7 +35,7 @@ class _QuizIntroScreenState extends State {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: FutureBuilder<List>(
+      body: FutureBuilder<List<Question>>(
         future: _questionsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -61,7 +61,7 @@ class _QuizIntroScreenState extends State {
                       ),
                       child: Center(
                         child: Icon(
-                          _getCategoryIcon((widget as QuizIntroScreen).category.name),
+                          _getCategoryIcon(widget.category.name ?? 'default'),
                           size: 64,
                           color: Colors.indigo[800],
                         ),
@@ -71,7 +71,7 @@ class _QuizIntroScreenState extends State {
                   SizedBox(height: 24),
                   Center(
                     child: Text(
-                      (widget as QuizIntroScreen).category.name,
+                      widget.category.name ?? 'Unknown Category',
                       style: GoogleFonts.poppins(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -82,7 +82,7 @@ class _QuizIntroScreenState extends State {
                   SizedBox(height: 8),
                   Center(
                     child: Text(
-                      (widget as QuizIntroScreen).category.description,
+                      widget.category.description ?? 'No description available',
                       textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(
                         fontSize: 16,
@@ -96,7 +96,9 @@ class _QuizIntroScreenState extends State {
                   _buildInfoItem('Duration', '$questionCount minutes'),
                   SizedBox(height: 8),
                   _buildInfoItem(
-                      'Difficulty', _getDifficultyLevel(questionCount)),
+                    'Difficulty',
+                    _getDifficultyLevel(questionCount),
+                  ),
                   Spacer(),
                   SizedBox(
                     width: double.infinity,
@@ -105,10 +107,11 @@ class _QuizIntroScreenState extends State {
                       onPressed: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) => QuizScreen(
-                              category: (widget as QuizIntroScreen).category,
-                              questions: snapshot.data! as List<Question>,
-                            ),
+                            builder:
+                                (context) => QuizScreen(
+                                  category: widget.category,
+                                  questions: snapshot.data! as List<Question>,
+                                ),
                           ),
                         );
                       },
@@ -146,10 +149,7 @@ class _QuizIntroScreenState extends State {
           flex: 2,
           child: Text(
             title,
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              color: Colors.grey[600],
-            ),
+            style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey[600]),
           ),
         ),
         Expanded(

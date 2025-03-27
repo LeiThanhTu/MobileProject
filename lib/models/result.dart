@@ -1,43 +1,57 @@
 class Result {
-  final int? id;
+  final int id;
   final int userId;
   final int categoryId;
   final int score;
   final int totalQuestions;
   final String date;
-  final String dateTaken;
 
   Result({
-    this.id,
+    required this.id,
     required this.userId,
     required this.categoryId,
     required this.score,
     required this.totalQuestions,
-    required this.date, required this.dateTaken,
+    required this.date, required String dateTaken,
   });
 
-  Map toMap() {
+  Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'userId': userId,
-      'categoryId': categoryId,
+      'user_id': userId,
+      'category_id': categoryId,
       'score': score,
-      'totalQuestions': totalQuestions,
+      'total_questions': totalQuestions,
       'date': date,
-      'dateTaken': dateTaken,
     };
   }
 
-  factory Result.fromMap(Map map) {
+  factory Result.fromMap(Map<String, dynamic> map) {
     return Result(
-      id: map['id'],
-      userId: map['userId'],
-      categoryId: map['categoryId'],
-      score: map['score'],
-      date: map['date'],
-      dateTaken: map['dateTaken'],
-      totalQuestions: map['totalQuestions'],
-      
+      id: map['id'] as int,
+      userId: map['user_id'] as int,
+      categoryId: map['category_id'] as int,
+      score: map['score'] as int,
+      totalQuestions: map['total_questions'] as int,
+      date: map['date'] as String, dateTaken: '',
+    );
+  }
+
+  Result copyWith({
+    int? id,
+    int? userId,
+    int? categoryId,
+    int? score,
+    int? totalQuestions,
+    String? date,
+  }) {
+    return Result(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      categoryId: categoryId ?? this.categoryId,
+      score: score ?? this.score,
+      totalQuestions: totalQuestions ?? this.totalQuestions,
+      date: date ?? this.date, dateTaken: '',
     );
   }
 }

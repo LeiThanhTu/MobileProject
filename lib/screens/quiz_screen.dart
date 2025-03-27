@@ -26,7 +26,7 @@ class _QuizScreenState extends State<QuizScreen> {
   String? _selectedAnswer;
   late Timer _timer;
   int _timeLeft = 60;
-  final DatabaseHelper _dbHelper = DatabaseHelper();
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   Map<int, String> _userAnswers = {};
 
   @override
@@ -98,7 +98,7 @@ class _QuizScreenState extends State<QuizScreen> {
 
     if (user != null) {
       final result = Result(
-        id: null,
+        id: 0,
         userId: user.id!,
         categoryId: widget.category.id!,
         score: _score,

@@ -3,7 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:test/screens/home_screen.dart';
 import 'package:test/screens/register_screen.dart';
-import 'package:test/services/auth_service.dart'; // Add this line
+import 'package:test/screens/forgot_password_screen.dart';
+import 'package:test/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -31,8 +32,10 @@ class _LoginScreenState extends State {
       });
 
       try {
-        bool success = await Provider.of<AuthService>(context, listen: false)
-            .login(_emailController.text.trim(), _passwordController.text);
+        bool success = await Provider.of<AuthService>(
+          context,
+          listen: false,
+        ).login(_emailController.text.trim(), _passwordController.text);
 
         if (success) {
           Navigator.of(context).pushReplacement(
@@ -59,6 +62,12 @@ class _LoginScreenState extends State {
         _isLoading = false;
       });
     }
+  }
+
+  void _forgotPassword() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => ForgotPasswordScreen()));
   }
 
   @override
@@ -114,8 +123,9 @@ class _LoginScreenState extends State {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your email';
                         }
-                        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                            .hasMatch(value)) {
+                        if (!RegExp(
+                          r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                        ).hasMatch(value)) {
                           return 'Please enter a valid email';
                         }
                         return null;
@@ -162,6 +172,21 @@ class _LoginScreenState extends State {
                         return null;
                       },
                     ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _forgotPassword,
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.indigo[600],
+                        ),
+                        child: Text(
+                          'Quên mật khẩu?',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
                     SizedBox(height: 20),
                     SizedBox(
                       width: double.infinity,
@@ -176,18 +201,20 @@ class _LoginScreenState extends State {
                           ),
                           elevation: 0,
                         ),
-                        child: _isLoading
-                            ? CircularProgressIndicator(
-                                valueColor:
-                                    AlwaysStoppedAnimation(Colors.white),
-                              )
-                            : Text(
-                                'Login',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
+                        child:
+                            _isLoading
+                                ? CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation(
+                                    Colors.white,
+                                  ),
+                                )
+                                : Text(
+                                  'Login',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                              ),
                       ),
                     ),
                     SizedBox(height: 20),
@@ -196,9 +223,7 @@ class _LoginScreenState extends State {
                       children: [
                         Text(
                           "Don't have an account? ",
-                          style: GoogleFonts.poppins(
-                            color: Colors.grey[600],
-                          ),
+                          style: GoogleFonts.poppins(color: Colors.grey[600]),
                         ),
                         TextButton(
                           onPressed: () {

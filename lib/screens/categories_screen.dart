@@ -11,9 +11,9 @@ class CategoriesScreen extends StatefulWidget {
   _CategoriesScreenState createState() => _CategoriesScreenState();
 }
 
-class _CategoriesScreenState extends State {
-  late Future<List> _categoriesFuture;
-  final DatabaseHelper _dbHelper = DatabaseHelper();
+class _CategoriesScreenState extends State<CategoriesScreen> {
+  late Future<List<Category>> _categoriesFuture;
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   @override
   void initState() {
@@ -23,7 +23,7 @@ class _CategoriesScreenState extends State {
 
   @override
   Widget build(BuildContext context) {
-  final userProvider = context.watch<UserProvider>();
+    final userProvider = context.watch<UserProvider>();
     final user = userProvider.currentUser;
 
     return Scaffold(
@@ -67,19 +67,15 @@ class _CategoriesScreenState extends State {
             ),
           ),
           Expanded(
-            child: FutureBuilder<List>(
+            child: FutureBuilder<List<Category>>(
               future: _categoriesFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
-                  return Center(
-                    child: Text('Error: ${snapshot.error}'),
-                  );
+                  return Center(child: Text('Error: ${snapshot.error}'));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(
-                    child: Text('No categories available'),
-                  );
+                  return Center(child: Text('No categories available'));
                 } else {
                   return Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -106,79 +102,79 @@ class _CategoriesScreenState extends State {
     );
   }
 
-Widget _buildCategoryCard(BuildContext context, Category category) {
-  return GestureDetector(
-    onTap: () {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => QuizIntroScreen(category: category),
+  Widget _buildCategoryCard(BuildContext context, Category category) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => QuizIntroScreen(category: category),
+          ),
+        );
+      },
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              flex: 3,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.indigo[100],
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                ),
+                child: Center(
+                  child: Icon(
+                    _getCategoryIcon(
+                      category.name ?? 'default',
+                    ), // Handle null value
+                    size: 48,
+                    color: Colors.indigo[800],
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      category.name ?? 'Unknown', // Handle null value
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.indigo[800],
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      category.description ??
+                          'No description available', // Handle null value
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
-      );
-    },
-    child: Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            flex: 3,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.indigo[100],
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
-                ),
-              ),
-              child: Center(
-                child: Icon(
-                  _getCategoryIcon(category.name ?? 'default'), // Handle null value
-                  size: 48,
-                  color: Colors.indigo[800],
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    category.name ?? 'Unknown', // Handle null value
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.indigo[800],
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    category.description ?? 'No description available', // Handle null value
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
+    );
+  }
 
   IconData _getCategoryIcon(String categoryName) {
     switch (categoryName.toLowerCase()) {

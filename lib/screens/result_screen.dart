@@ -8,7 +8,6 @@ import 'package:test/providers/user_provider.dart';
 import 'package:test/screens/result_detail_screen.dart';
 import 'package:intl/intl.dart';
 
-
 class ResultsScreen extends StatefulWidget {
   @override
   _ResultsScreenState createState() => _ResultsScreenState();
@@ -16,7 +15,7 @@ class ResultsScreen extends StatefulWidget {
 
 class _ResultsScreenState extends State<ResultsScreen> {
   late Future<List<Result>> _resultsFuture;
-  final DatabaseHelper _dbHelper = DatabaseHelper();
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   @override
   void initState() {
@@ -27,10 +26,12 @@ class _ResultsScreenState extends State<ResultsScreen> {
   Future<void> _loadResults() async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final user = userProvider.currentUser;
-    
+
     if (user != null) {
       setState(() {
-        _resultsFuture = _dbHelper.getResultsByUser(user.id!).then((value) => value.cast<Result>());
+        _resultsFuture = _dbHelper
+            .getResultsByUser(user.id!)
+            .then((value) => value.cast<Result>());
       });
     }
   }
@@ -58,19 +59,13 @@ class _ResultsScreenState extends State<ResultsScreen> {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(child: CircularProgressIndicator());
             } else if (snapshot.hasError) {
-              return Center(
-                child: Text('Error: ${snapshot.error}'),
-              );
+              return Center(child: Text('Error: ${snapshot.error}'));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.bar_chart,
-                      size: 80,
-                      color: Colors.grey[400],
-                    ),
+                    Icon(Icons.bar_chart, size: 80, color: Colors.grey[400]),
                     SizedBox(height: 16),
                     Text(
                       'No quiz results yet',
@@ -111,12 +106,12 @@ class _ResultsScreenState extends State<ResultsScreen> {
     final score = result.score;
     final total = result.totalQuestions;
     final percentage = (score / total * 100).round();
-    
+
     return FutureBuilder<String>(
       future: _dbHelper.getCategoryName(result.categoryId),
       builder: (context, snapshot) {
         final categoryName = snapshot.data ?? 'Unknown Category';
-        
+
         return Card(
           margin: EdgeInsets.only(bottom: 16),
           elevation: 2,
@@ -127,12 +122,13 @@ class _ResultsScreenState extends State<ResultsScreen> {
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => ResultDetailScreen(
-                    resultId: result.id!,
-                    categoryName: categoryName,
-                    score: score,
-                    totalQuestions: total,
-                  ),
+                  builder:
+                      (context) => ResultDetailScreen(
+                        resultId: result.id!,
+                        categoryName: categoryName,
+                        score: score,
+                        totalQuestions: total,
+                      ),
                 ),
               );
             },
@@ -170,7 +166,9 @@ class _ResultsScreenState extends State<ResultsScreen> {
                               ),
                             ),
                             Text(
-                              DateFormat('MMM d, yyyy').format(DateTime.parse(result.dateTaken)),
+                              DateFormat(
+                                'MMM d, yyyy',
+                              ).format(DateTime.parse(result.date)),
                               style: GoogleFonts.poppins(
                                 fontSize: 12,
                                 color: Colors.grey[600],
@@ -180,7 +178,10 @@ class _ResultsScreenState extends State<ResultsScreen> {
                         ),
                       ),
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: _getScoreColor(percentage),
                           borderRadius: BorderRadius.circular(20),
@@ -199,7 +200,9 @@ class _ResultsScreenState extends State<ResultsScreen> {
                   LinearProgressIndicator(
                     value: score / total,
                     backgroundColor: Colors.grey[200],
-                    valueColor: AlwaysStoppedAnimation<Color>(_getScoreColor(percentage)),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      _getScoreColor(percentage),
+                    ),
                   ),
                   SizedBox(height: 8),
                   Text(

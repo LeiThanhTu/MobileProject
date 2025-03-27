@@ -5,7 +5,6 @@ import 'package:test/models/question_result.dart';
 import 'package:confetti/confetti.dart';
 import 'package:confetti/confetti.dart';
 
-
 class ResultDetailScreen extends StatefulWidget {
   final int resultId;
   final String categoryName;
@@ -26,14 +25,14 @@ class ResultDetailScreen extends StatefulWidget {
 class _ResultDetailScreenState extends State<ResultDetailScreen> {
   late ConfettiController _confettiController;
   late Future<List<QuestionResult>> _questionResultsFuture;
-  final DatabaseHelper _dbHelper = DatabaseHelper();
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   @override
   void initState() {
     super.initState();
     _questionResultsFuture = _dbHelper.getQuestionResults(widget.resultId);
     _confettiController = ConfettiController(duration: Duration(seconds: 5));
-    
+
     if (widget.score / widget.totalQuestions >= 0.7) {
       _confettiController.play();
     }
@@ -48,7 +47,7 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final percentage = (widget.score / widget.totalQuestions * 100).round();
-    
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -116,7 +115,7 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
                 Colors.blue,
                 Colors.pink,
                 Colors.orange,
-                Colors.purple
+                Colors.purple,
               ],
             ),
           ),
@@ -150,9 +149,7 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
 
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: EdgeInsets.all(20),
         child: Column(
@@ -160,11 +157,7 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  resultIcon,
-                  size: 32,
-                  color: resultColor,
-                ),
+                Icon(resultIcon, size: 32, color: resultColor),
                 SizedBox(width: 10),
                 Text(
                   resultMessage,
@@ -179,10 +172,7 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
             SizedBox(height: 20),
             Text(
               '${widget.categoryName} Quiz',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
+              style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey[600]),
             ),
             SizedBox(height: 20),
             Text(
@@ -216,12 +206,12 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
 
   Widget _buildQuestionResultItem(QuestionResult result, int questionNumber) {
     final isCorrect = result.userAnswer == result.correctAnswer;
-    
+
     return FutureBuilder<String>(
       future: _dbHelper.getQuestionText(result.questionId),
       builder: (context, snapshot) {
         final questionText = snapshot.data ?? 'Loading question...';
-        
+
         return Card(
           margin: EdgeInsets.only(bottom: 16),
           shape: RoundedRectangleBorder(
@@ -248,7 +238,8 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
                           '$questionNumber',
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.bold,
-                            color: isCorrect ? Colors.green[800] : Colors.red[800],
+                            color:
+                                isCorrect ? Colors.green[800] : Colors.red[800],
                           ),
                         ),
                       ),
@@ -271,16 +262,21 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
                             children: [
                               Icon(
                                 isCorrect ? Icons.check_circle : Icons.cancel,
-                                color: isCorrect ? Colors.green[600] : Colors.red[600],
-                                size:
-                                 18,
+                                color:
+                                    isCorrect
+                                        ? Colors.green[600]
+                                        : Colors.red[600],
+                                size: 18,
                               ),
                               SizedBox(width: 8),
                               Text(
                                 isCorrect ? 'Correct' : 'Incorrect',
                                 style: GoogleFonts.poppins(
                                   fontWeight: FontWeight.w500,
-                                  color: isCorrect ? Colors.green[600] : Colors.red[600],
+                                  color:
+                                      isCorrect
+                                          ? Colors.green[600]
+                                          : Colors.red[600],
                                 ),
                               ),
                             ],
