@@ -5,9 +5,11 @@ import 'package:test/models/user.dart';
 
 class AuthService with ChangeNotifier {
   bool _isAuthenticated = false;
+  User? _currentUser;
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   bool get isAuthenticated => _isAuthenticated;
+  User? get currentUser => _currentUser;
 
   void loginWithoutCredentials() {
     _isAuthenticated = true;
@@ -16,7 +18,13 @@ class AuthService with ChangeNotifier {
 
   Future<bool> login(String email, String password) async {
     User? user = await _dbHelper.getUser(email, password);
-    return user != null;
+    if (user != null) {
+      _currentUser = user;
+      _isAuthenticated = true;
+      notifyListeners();
+      return true;
+    }
+    return false;
   }
 
   Future<bool> resetPassword(String email) async {
@@ -51,6 +59,7 @@ class AuthService with ChangeNotifier {
 
   void logout() {
     _isAuthenticated = false;
+    _currentUser = null;
     notifyListeners();
   }
 }

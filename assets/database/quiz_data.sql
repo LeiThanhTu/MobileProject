@@ -48,10 +48,10 @@ CREATE TABLE IF NOT EXISTS users (
   email TEXT NOT NULL UNIQUE,
   password TEXT NOT NULL
 );
-INSERT INTO "categories" ("id","name","description","imageUrl") VALUES (1,'Toán học','Các câu hỏi về đại số, hình học và các khái niệm toán học cơ bản','assets/images/math.png'),
- (2,'Vật lý','Kiến thức về cơ học, điện từ học và các định luật vật lý','assets/images/physics.png'),
- (3,'Hóa học','Các phản ứng hóa học, cấu tạo nguyên tử và bảng tuần hoàn','assets/images/chemistry.png'),
- (4,'Sinh học','Kiến thức về cơ thể người, động vật và thực vật','assets/images/biology.png'),
+INSERT INTO "categories" ("id","name","description","imageUrl") VALUES (1,'Toán học','Các câu hỏi về đại số','assets/images/math.png'),
+ (2,'Vật lý','Kiến thức về cơ học','assets/images/physics.png'),
+ (3,'Hóa học','Các phản ứng hóa học','assets/images/chemistry.png'),
+ (4,'Sinh học','Kiến thức về cơ thể người','assets/images/biology.png'),
  (5,'Lịch sử','Các sự kiện lịch sử quan trọng của Việt Nam và thế giới','assets/images/history.png'),
  (6,'Địa lý','Kiến thức về địa lý tự nhiên và kinh tế xã hội','assets/images/geography.png');
 INSERT INTO "questions" ("id","category_id","question_text","correct_answer","options","explanation") VALUES (1,1,'Phương trình x² + 2x + 1 = 0 có bao nhiêu nghiệm?','1','["0", "1", "2", "Vô số"]','Đây là phương trình (x + 1)² = 0, nên chỉ có một nghiệm x = -1'),

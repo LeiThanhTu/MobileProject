@@ -334,12 +334,23 @@ class DatabaseHelper {
 
   Future<List<Result>> getResultsByUser(int userId) async {
     final db = await database;
-    final maps = await db.query(
-      'results',
-      where: 'user_id = ?',
-      whereArgs: [userId],
-      orderBy: 'date DESC',
+    final maps = await db.rawQuery(
+      '''
+      SELECT r.*, c.name as category_name 
+      FROM results r
+      LEFT JOIN categories c ON r.category_id = c.id
+      INNER JOIN (
+        SELECT category_id, MAX(date) as latest_date
+        FROM results
+        WHERE user_id = ?
+        GROUP BY category_id
+      ) latest ON r.category_id = latest.category_id AND r.date = latest.latest_date
+      WHERE r.user_id = ?
+      ORDER BY r.date DESC
+      ''',
+      [userId, userId],
     );
+
     return List.generate(maps.length, (i) {
       return Result.fromMap(maps[i].cast<String, dynamic>());
     });
@@ -388,5 +399,14 @@ class DatabaseHelper {
       return result.first['name'] as String;
     }
     return 'Unknown Category';
+  }
+
+  Future<int> getQuestionCountForCategory(int categoryId) async {
+    final db = await database;
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) as count FROM questions WHERE category_id = ?',
+      [categoryId],
+    );
+    return Sqflite.firstIntValue(result) ?? 0;
   }
 }

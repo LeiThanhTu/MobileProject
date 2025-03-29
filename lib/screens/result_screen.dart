@@ -3,45 +3,21 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:test/database/database_helper.dart';
 import 'package:test/models/result.dart';
-import 'package:test/providers/user_provider.dart';
-
+import 'package:test/models/category.dart';
+import 'package:test/services/auth_service.dart';
 import 'package:test/screens/result_detail_screen.dart';
-import 'package:intl/intl.dart';
+import 'package:test/screens/quiz_screen.dart';
 
-class ResultsScreen extends StatefulWidget {
-  @override
-  _ResultsScreenState createState() => _ResultsScreenState();
-}
-
-class _ResultsScreenState extends State<ResultsScreen> {
-  late Future<List<Result>> _resultsFuture;
-  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadResults();
-  }
-
-  Future<void> _loadResults() async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final user = userProvider.currentUser;
-
-    if (user != null) {
-      setState(() {
-        _resultsFuture = _dbHelper
-            .getResultsByUser(user.id!)
-            .then((value) => value.cast<Result>());
-      });
-    }
-  }
+class ResultsScreen extends StatelessWidget {
+  const ResultsScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context);
+    final userId = authService.currentUser?.id;
+
     return Scaffold(
       appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
         title: Text(
           'My Results',
           style: GoogleFonts.poppins(
@@ -50,209 +26,264 @@ class _ResultsScreenState extends State<ResultsScreen> {
           ),
         ),
         centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
-      body: RefreshIndicator(
-        onRefresh: _loadResults,
-        child: FutureBuilder<List<Result>>(
-          future: _resultsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.bar_chart, size: 80, color: Colors.grey[400]),
-                    SizedBox(height: 16),
-                    Text(
-                      'No quiz results yet',
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Complete a quiz to see your results here',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: Colors.grey[500],
-                      ),
-                    ),
-                  ],
+      body:
+          userId == null
+              ? Center(
+                child: Text(
+                  'Please login to view results',
+                  style: GoogleFonts.poppins(fontSize: 16),
                 ),
-              );
-            } else {
-              return ListView.builder(
-                padding: EdgeInsets.all(16),
-                itemCount: snapshot.data!.length,
-                itemBuilder: (context, index) {
-                  final result = snapshot.data![index];
-                  return _buildResultCard(context, result);
-                },
-              );
-            }
-          },
-        ),
-      ),
-    );
-  }
+              )
+              : FutureBuilder<List<Result>>(
+                future: DatabaseHelper.instance.getResultsByUser(userId),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-  Widget _buildResultCard(BuildContext context, Result result) {
-    final score = result.score;
-    final total = result.totalQuestions;
-    final percentage = (score / total * 100).round();
-
-    return FutureBuilder<String>(
-      future: _dbHelper.getCategoryName(result.categoryId),
-      builder: (context, snapshot) {
-        final categoryName = snapshot.data ?? 'Unknown Category';
-
-        return Card(
-          margin: EdgeInsets.only(bottom: 16),
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: InkWell(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder:
-                      (context) => ResultDetailScreen(
-                        resultId: result.id!,
-                        categoryName: categoryName,
-                        score: score,
-                        totalQuestions: total,
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text(
+                        'Error: ${snapshot.error}',
+                        style: GoogleFonts.poppins(fontSize: 16),
                       ),
-                ),
-              );
-            },
-            borderRadius: BorderRadius.circular(16),
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.indigo[50],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          _getCategoryIcon(categoryName),
-                          color: Colors.indigo[600],
-                          size: 24,
-                        ),
+                    );
+                  }
+
+                  final results = snapshot.data ?? [];
+
+                  if (results.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.quiz_outlined,
+                            size: 64,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No quiz results yet',
+                            style: GoogleFonts.poppins(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Try taking a quiz',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(width: 12),
-                      Expanded(
+                    );
+                  }
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: results.length,
+                    itemBuilder: (context, index) {
+                      final result = results[index];
+                      final score =
+                          (result.score / result.totalQuestions) * 100;
+                      final scoreColor =
+                          score >= 80
+                              ? Colors.green
+                              : score >= 60
+                              ? Colors.orange
+                              : Colors.red;
+
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              categoryName,
-                              style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.indigo[800],
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      color: Colors.indigo[50],
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      Icons.quiz_outlined,
+                                      color: Colors.indigo[800],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          result.categoryName ?? 'Unknown',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.indigo[800],
+                                          ),
+                                        ),
+                                        Text(
+                                          result.createdAt.split('T')[0],
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 14,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: scoreColor.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      '${score.toStringAsFixed(0)}%',
+                                      style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w600,
+                                        color: scoreColor,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            Text(
-                              DateFormat(
-                                'MMM d, yyyy',
-                              ).format(DateTime.parse(result.date)),
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                color: Colors.grey[600],
+                            Container(
+                              height: 4,
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              decoration: BoxDecoration(
+                                color: scoreColor.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                              alignment: Alignment.centerLeft,
+                              child: FractionallySizedBox(
+                                widthFactor: score / 100,
+                                alignment: Alignment.centerLeft,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: scoreColor,
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    'Score: ${result.score}/${result.totalQuestions}',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) => ResultDetailScreen(
+                                                resultId: result.id!,
+                                                categoryName:
+                                                    result.categoryName ??
+                                                    'Unknown',
+                                                score: result.score,
+                                                totalQuestions:
+                                                    result.totalQuestions,
+                                              ),
+                                        ),
+                                      );
+                                    },
+                                    child: Text(
+                                      'Details',
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.indigo[600],
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  TextButton(
+                                    onPressed: () async {
+                                      final questions = await DatabaseHelper
+                                          .instance
+                                          .getQuestionsByCategory(
+                                            result.categoryId,
+                                          );
+                                      if (!context.mounted) return;
+
+                                      if (questions.isEmpty) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'No questions available for this category',
+                                            ),
+                                          ),
+                                        );
+                                        return;
+                                      }
+
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) => QuizScreen(
+                                                category: Category(
+                                                  id: result.categoryId,
+                                                  name:
+                                                      result.categoryName ??
+                                                      'Unknown',
+                                                ),
+                                                questions: questions,
+                                              ),
+                                        ),
+                                      );
+                                    },
+                                    child: Text(
+                                      'Retry',
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.indigo[600],
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _getScoreColor(percentage),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          '$percentage%',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  LinearProgressIndicator(
-                    value: score / total,
-                    backgroundColor: Colors.grey[200],
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      _getScoreColor(percentage),
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Score: $score/$total',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+                      );
+                    },
+                  );
+                },
               ),
-            ),
-          ),
-        );
-      },
     );
-  }
-
-  Color _getScoreColor(int percentage) {
-    if (percentage >= 80) {
-      return Colors.green[600]!;
-    } else if (percentage >= 60) {
-      return Colors.blue[600]!;
-    } else if (percentage >= 40) {
-      return Colors.orange[600]!;
-    } else {
-      return Colors.red[600]!;
-    }
-  }
-
-  IconData _getCategoryIcon(String categoryName) {
-    switch (categoryName.toLowerCase()) {
-      case 'science':
-        return Icons.science;
-      case 'history':
-        return Icons.history_edu;
-      case 'geography':
-        return Icons.public;
-      case 'math':
-        return Icons.calculate;
-      case 'sports':
-        return Icons.sports;
-      case 'movies':
-        return Icons.movie;
-      case 'music':
-        return Icons.music_note;
-      case 'art':
-        return Icons.palette;
-      default:
-        return Icons.quiz;
-    }
   }
 }

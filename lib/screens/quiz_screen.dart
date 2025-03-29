@@ -97,38 +97,57 @@ class _QuizScreenState extends State<QuizScreen> {
     final user = userProvider.currentUser;
 
     if (user != null) {
+      final now = DateTime.now();
       final result = Result(
-        id: 0,
         userId: user.id!,
-        categoryId: widget.category.id!,
+        categoryId: widget.category.id,
         score: _score,
         totalQuestions: widget.questions.length,
-        dateTaken: DateTime.now().toString(),
-        date: DateTime.now().toString(), // Add the required 'date' parameter
+        date: now.toIso8601String(),
+        createdAt: now.toIso8601String(),
       );
 
-      int resultId = await _dbHelper.insertResult(result);
-      
-      // Save individual question results
-      for (var entry in _userAnswers.entries) {
-        await _dbHelper.saveQuestionResult(
-          resultId, 
-          entry.key, 
-          entry.value,
-          widget.questions.firstWhere((q) => q.id == entry.key).correctAnswer
+      try {
+        final resultId = await _dbHelper.insertResult(result);
+        print('Result saved with ID: $resultId'); // Debug log
+
+        // Save individual question results
+        for (var entry in _userAnswers.entries) {
+          final question = widget.questions.firstWhere(
+            (q) => q.id == entry.key,
+          );
+          await _dbHelper.saveQuestionResult(
+            resultId,
+            entry.key,
+            entry.value,
+            question.correctAnswer,
+          );
+        }
+
+        if (!mounted) return;
+
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder:
+                (context) => ResultDetailScreen(
+                  resultId: resultId,
+                  categoryName: widget.category.name,
+                  score: _score,
+                  totalQuestions: widget.questions.length,
+                ),
+          ),
+        );
+      } catch (e) {
+        print('Error saving result: $e'); // Debug log
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving result: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
-
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => ResultDetailScreen(
-            resultId: resultId,
-            categoryName: widget.category.name,
-            score: _score,
-            totalQuestions: widget.questions.length,
-          ),
-        ),
-      );
     }
   }
 
@@ -149,7 +168,9 @@ class _QuizScreenState extends State<QuizScreen> {
           builder: (context) {
             return AlertDialog(
               title: Text('Quit Quiz?'),
-              content: Text('Are you sure you want to quit? Your progress will be lost.'),
+              content: Text(
+                'Are you sure you want to quit? Your progress will be lost.',
+              ),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -212,11 +233,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     ),
                     child: Row(
                       children: [
-                        Icon(
-                          Icons.timer,
-                          color: Colors.white,
-                          size: 16,
-                        ),
+                        Icon(Icons.timer, color: Colors.white, size: 16),
                         SizedBox(width: 4),
                         Text(
                           '$_timeLeft sec',
@@ -272,10 +289,10 @@ class _QuizScreenState extends State<QuizScreen> {
   Widget _buildAnswerOption(String answer, String correctAnswer) {
     bool isSelected = _selectedAnswer == answer;
     bool isCorrect = answer == correctAnswer;
-    
+
     Color backgroundColor = Colors.white;
     Color borderColor = Colors.grey[300]!;
-    
+
     if (_answered) {
       if (isCorrect) {
         backgroundColor = Colors.green[50]!;
@@ -315,9 +332,10 @@ class _QuizScreenState extends State<QuizScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color: isSelected && _answered
-                      ? (isCorrect ? Colors.green[700] : Colors.red[700])
-                      : Colors.black87,
+                  color:
+                      isSelected && _answered
+                          ? (isCorrect ? Colors.green[700] : Colors.red[700])
+                          : Colors.black87,
                 ),
               ),
             ),
