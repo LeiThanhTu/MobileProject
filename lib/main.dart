@@ -1,19 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:test/providers/user_provider.dart';
-import 'package:test/screens/home_screen.dart';
-import 'package:test/screens/login_screen.dart';
-import 'package:test/screens/register_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'screens/login_screen.dart';
+import 'screens/home_screen.dart';
+import 'services/auth_service.dart';
+import 'providers/user_provider.dart';
+import 'models/exam_state.dart';
 
-import 'package:test/utils/theme.dart'; // Ensure this file defines the AppTheme class
-import 'package:test/services/auth_service.dart'; // Add this line to import AuthService
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-void main() {
+  final userProvider = UserProvider();
+  final authService = AuthService();
+  authService.initialize(userProvider);
+
+  await userProvider.checkLoginStatus();
+
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthService()),
-        ChangeNotifierProvider(create: (context) => UserProvider()),
+        ChangeNotifierProvider.value(value: userProvider),
+        ChangeNotifierProvider.value(value: authService),
+        ChangeNotifierProvider(
+          create:
+              (_) => ExamState(
+                questions: [],
+                userId: 0,
+                categoryId: 0,
+                totalTime: 0,
+              ),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -26,20 +42,21 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Quiz App',
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
-      debugShowCheckedModeBanner: false,
+      title: 'Ứng dụng thi trắc nghiệm',
+      theme: ThemeData(
+        primarySwatch: Colors.indigo,
+        useMaterial3: true,
+        textTheme: GoogleFonts.poppinsTextTheme(),
+      ),
       home: Consumer<AuthService>(
         builder: (context, authService, _) {
-          if (authService != null && authService.isAuthenticated) {
-            return HomeScreen();
-          } else {
-            return LoginScreen();
-          }
+          return authService.isAuthenticated
+              ? HomeScreen()
+              : LoginScreen();
         },
       ),
     );
   }
 }
+
+// ... existing code ...

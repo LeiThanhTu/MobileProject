@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:test/database/database_helper.dart';
 import 'package:test/models/user.dart';
+import 'package:test/providers/user_provider.dart';
 
 class AuthService with ChangeNotifier {
   bool _isAuthenticated = false;
@@ -62,4 +63,6 @@ class AuthService with ChangeNotifier {
     _currentUser = null;
     notifyListeners();
   }
+
+  void initialize(UserProvider userProvider) {}
 }

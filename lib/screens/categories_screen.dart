@@ -84,7 +84,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         crossAxisCount: 2,
                         crossAxisSpacing: 16,
                         mainAxisSpacing: 16,
-                        childAspectRatio: 0.8,
+                        childAspectRatio: 1.0,
                       ),
                       itemCount: snapshot.data!.length,
                       itemBuilder: (context, index) {
@@ -115,10 +115,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              flex: 3,
+              flex: 2,
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.indigo[100],
@@ -132,7 +133,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     _getCategoryIcon(
                       category.name ?? 'default',
                     ), // Handle null value
-                    size: 48,
+                    size: 40,
                     color: Colors.indigo[800],
                   ),
                 ),
@@ -141,26 +142,27 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             Expanded(
               flex: 2,
               child: Padding(
-                padding: const EdgeInsets.all(12.0),
+                padding: const EdgeInsets.all(8.0),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       category.name ?? 'Unknown', // Handle null value
                       style: GoogleFonts.poppins(
-                        fontSize: 16,
+                        fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: Colors.indigo[800],
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 4),
+                    SizedBox(height: 2),
                     Text(
                       category.description ??
                           'No description available', // Handle null value
                       style: GoogleFonts.poppins(
-                        fontSize: 12,
+                        fontSize: 11,
                         color: Colors.grey[600],
                       ),
                       maxLines: 2,

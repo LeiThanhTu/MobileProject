@@ -267,6 +267,34 @@ class _QuizScreenState extends State<QuizScreen> {
                           color: Colors.indigo[800],
                         ),
                       ),
+                      if (question.imageUrl != null &&
+                          question.imageUrl!.isNotEmpty) ...[
+                        SizedBox(height: 20),
+                        Container(
+                          width: double.infinity,
+                          height: 200,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.grey[200],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.asset(
+                              question.imageUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Center(
+                                  child: Icon(
+                                    Icons.error_outline,
+                                    color: Colors.grey[400],
+                                    size: 40,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
                       SizedBox(height: 30),
                       ...List.generate(
                         answers.length,

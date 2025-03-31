@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:test/database/database_helper.dart';
 import 'package:test/models/result.dart';
 import 'package:test/models/category.dart';
-import 'package:test/services/auth_service.dart';
+import 'package:test/providers/user_provider.dart';
 import 'package:test/screens/result_detail_screen.dart';
 import 'package:test/screens/quiz_screen.dart';
 
@@ -13,13 +13,13 @@ class ResultsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authService = Provider.of<AuthService>(context);
-    final userId = authService.currentUser?.id;
+    final userProvider = Provider.of<UserProvider>(context);
+    final userId = userProvider.currentUser?.id;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'My Results',
+          'Kết quả của tôi',
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
             color: Colors.indigo[800],
@@ -33,7 +33,7 @@ class ResultsScreen extends StatelessWidget {
           userId == null
               ? Center(
                 child: Text(
-                  'Please login to view results',
+                  'Vui lòng đăng nhập để xem kết quả',
                   style: GoogleFonts.poppins(fontSize: 16),
                 ),
               )
@@ -47,7 +47,7 @@ class ResultsScreen extends StatelessWidget {
                   if (snapshot.hasError) {
                     return Center(
                       child: Text(
-                        'Error: ${snapshot.error}',
+                        'Lỗi: ${snapshot.error}',
                         style: GoogleFonts.poppins(fontSize: 16),
                       ),
                     );
@@ -67,7 +67,7 @@ class ResultsScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'No quiz results yet',
+                            'Chưa có kết quả bài kiểm tra nào',
                             style: GoogleFonts.poppins(
                               fontSize: 18,
                               fontWeight: FontWeight.w500,
@@ -76,7 +76,7 @@ class ResultsScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Try taking a quiz',
+                            'Hãy thử làm một bài kiểm tra',
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                               color: Colors.grey[600],

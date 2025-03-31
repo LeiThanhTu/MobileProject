@@ -65,6 +65,7 @@ class DatabaseHelper {
         correct_answer TEXT NOT NULL,
         options TEXT NOT NULL,
         explanation TEXT,
+        image_url TEXT,
         FOREIGN KEY (category_id) REFERENCES categories (id)
       )
     ''');

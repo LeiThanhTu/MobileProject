@@ -7,6 +7,7 @@ class Question {
   final String correctAnswer;
   final List<String> options;
   final String? explanation;
+  final String? imageUrl;
 
   String get text => questionText;
   String get optionA => options[0];
@@ -21,16 +22,18 @@ class Question {
     required this.correctAnswer,
     required this.options,
     this.explanation,
+    this.imageUrl,
   });
 
-  Map<String, Object?> toMap() {
+  Map<String, dynamic> toMap() {
     return {
       'id': id,
       'category_id': categoryId,
       'question_text': questionText,
       'correct_answer': correctAnswer,
-      'options': jsonEncode(options),
+      'options': options.join('|'),
       'explanation': explanation,
+      'image_url': imageUrl,
     };
   }
 
@@ -40,8 +43,9 @@ class Question {
       categoryId: map['category_id'] as int,
       questionText: map['question_text'] as String,
       correctAnswer: map['correct_answer'] as String,
-      options: List<String>.from(jsonDecode(map['options'] as String)),
+      options: (map['options'] as String).split('|'),
       explanation: map['explanation'] as String?,
+      imageUrl: map['image_url'] as String?,
     );
   }
 
@@ -52,6 +56,7 @@ class Question {
     String? correctAnswer,
     List<String>? options,
     String? explanation,
+    String? imageUrl,
   }) {
     return Question(
       id: id ?? this.id,
@@ -60,6 +65,7 @@ class Question {
       correctAnswer: correctAnswer ?? this.correctAnswer,
       options: options ?? this.options,
       explanation: explanation ?? this.explanation,
+      imageUrl: imageUrl ?? this.imageUrl,
     );
   }
 }

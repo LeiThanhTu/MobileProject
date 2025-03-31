@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:test/screens/home_screen.dart';
 import 'package:test/screens/register_screen.dart';
 import 'package:test/screens/forgot_password_screen.dart';
-import 'package:test/services/auth_service.dart';
+import 'package:test/providers/user_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -32,7 +32,7 @@ class _LoginScreenState extends State {
       });
 
       try {
-        bool success = await Provider.of<AuthService>(
+        bool success = await Provider.of<UserProvider>(
           context,
           listen: false,
         ).login(_emailController.text.trim(), _passwordController.text);
@@ -44,7 +44,7 @@ class _LoginScreenState extends State {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Invalid email or password'),
+              content: Text('Email hoặc mật khẩu không đúng'),
               backgroundColor: Colors.red,
             ),
           );
@@ -52,7 +52,7 @@ class _LoginScreenState extends State {
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('An error occurred: $e'),
+            content: Text('Đã xảy ra lỗi: $e'),
             backgroundColor: Colors.red,
           ),
         );
