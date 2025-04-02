@@ -151,6 +151,63 @@ class _QuizScreenState extends State<QuizScreen> {
     }
   }
 
+  Future<bool?> _showExitDialog() {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          title: Text(
+            'Exit Quiz?',
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.bold,
+              color: Colors.indigo[800],
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to quit? Your progress will not be saved.',
+            style: GoogleFonts.poppins(fontSize: 15),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: Text(
+                'Continue Quiz',
+                style: GoogleFonts.poppins(
+                  color: Colors.indigo[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red[400],
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'Exit',
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+          actionsPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final question = widget.questions[_currentQuestionIndex];
@@ -163,31 +220,7 @@ class _QuizScreenState extends State<QuizScreen> {
 
     return WillPopScope(
       onWillPop: () async {
-        final shouldPop = await showDialog<bool>(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: Text('Quit Quiz?'),
-              content: Text(
-                'Are you sure you want to quit? Your progress will be lost.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(false);
-                  },
-                  child: Text('No'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(true);
-                  },
-                  child: Text('Yes'),
-                ),
-              ],
-            );
-          },
-        );
+        final shouldPop = await _showExitDialog();
         return shouldPop ?? false;
       },
       child: Scaffold(
@@ -196,8 +229,11 @@ class _QuizScreenState extends State<QuizScreen> {
           backgroundColor: Colors.transparent,
           leading: IconButton(
             icon: Icon(Icons.close, color: Colors.indigo[600]),
-            onPressed: () {
-              Navigator.of(context).pop();
+            onPressed: () async {
+              final shouldPop = await _showExitDialog();
+              if (shouldPop ?? false) {
+                Navigator.of(context).pop();
+              }
             },
           ),
           title: Text(
