@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:test/database/database_helper.dart';
 import 'package:test/models/question_result.dart';
 import 'package:confetti/confetti.dart';
-import 'package:confetti/confetti.dart';
+import 'package:test/screens/question_detail_screen.dart';
 
 class ResultDetailScreen extends StatefulWidget {
   final int resultId;
@@ -212,132 +212,156 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
       builder: (context, snapshot) {
         final questionText = snapshot.data ?? 'Loading question...';
 
-        return Card(
-          margin: EdgeInsets.only(bottom: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          color: isCorrect ? Colors.green[50] : Colors.red[50],
-          child: Padding(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        color: isCorrect ? Colors.green[100] : Colors.red[100],
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Center(
-                        child: Text(
-                          '$questionNumber',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.bold,
-                            color:
-                                isCorrect ? Colors.green[800] : Colors.red[800],
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder:
+                    (context) => QuestionDetailScreen(
+                      questionId: result.questionId,
+                      userAnswer: result.userAnswer,
+                      correctAnswer: result.correctAnswer,
+                    ),
+              ),
+            );
+          },
+          child: Card(
+            margin: EdgeInsets.only(bottom: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            color: isCorrect ? Colors.green[50] : Colors.red[50],
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          color:
+                              isCorrect ? Colors.green[100] : Colors.red[100],
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Center(
+                          child: Text(
+                            '$questionNumber',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.bold,
+                              color:
+                                  isCorrect
+                                      ? Colors.green[800]
+                                      : Colors.red[800],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            questionText,
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Icon(
-                                isCorrect ? Icons.check_circle : Icons.cancel,
-                                color:
-                                    isCorrect
-                                        ? Colors.green[600]
-                                        : Colors.red[600],
-                                size: 18,
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              questionText,
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black87,
                               ),
-                              SizedBox(width: 8),
-                              Text(
-                                isCorrect ? 'Correct' : 'Incorrect',
-                                style: GoogleFonts.poppins(
-                                  fontWeight: FontWeight.w500,
+                            ),
+                            SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Icon(
+                                  isCorrect ? Icons.check_circle : Icons.cancel,
                                   color:
                                       isCorrect
                                           ? Colors.green[600]
                                           : Colors.red[600],
+                                  size: 18,
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                if (!isCorrect) ...[
-                  SizedBox(height: 16),
-                  Divider(),
-                  SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Your Answer:',
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                            Text(
-                              result.userAnswer,
-                              style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.w500,
-                                color: Colors.red[800],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Correct Answer:',
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                            Text(
-                              result.correctAnswer,
-                              style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.w500,
-                                color: Colors.green[800],
-                              ),
+                                SizedBox(width: 8),
+                                Text(
+                                  isCorrect ? 'Correct' : 'Incorrect',
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.w500,
+                                    color:
+                                        isCorrect
+                                            ? Colors.green[600]
+                                            : Colors.red[600],
+                                  ),
+                                ),
+                                Spacer(),
+                                Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 16,
+                                  color: Colors.grey[600],
+                                ),
+                              ],
                             ),
                           ],
                         ),
                       ),
                     ],
                   ),
+                  if (!isCorrect) ...[
+                    SizedBox(height: 16),
+                    Divider(),
+                    SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Your Answer:',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              Text(
+                                result.userAnswer,
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.red[800],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Correct Answer:',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              Text(
+                                result.correctAnswer,
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.green[800],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         );

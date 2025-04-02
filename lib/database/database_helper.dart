@@ -270,10 +270,22 @@ class DatabaseHelper {
       where: 'id = ?',
       whereArgs: [questionId],
     );
-    if (result.isNotEmpty) {
-      return result.first['question_text'] as String;
+    return result.first['question_text'] as String;
+  }
+
+  Future<Question> getQuestionById(int questionId) async {
+    final db = await database;
+    final result = await db.query(
+      'questions',
+      where: 'id = ?',
+      whereArgs: [questionId],
+    );
+
+    if (result.isEmpty) {
+      throw Exception('Question not found');
     }
-    throw Exception('Question not found');
+
+    return Question.fromMap(result.first);
   }
 
   // User Progress operations
