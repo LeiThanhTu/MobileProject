@@ -9,6 +9,8 @@ import 'dart:async';
 import 'package:test/models/result.dart';
 import 'package:test/models/user.dart';
 import 'package:test/models/user_progress.dart';
+import 'package:test/models/exam_result.dart';
+import 'package:test/models/exam_question_result.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -40,11 +42,35 @@ class DatabaseHelper {
 
   Future<void> _createDB(Database db, int version) async {
     await db.execute('''
-      CREATE TABLE users (
+      CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT NOT NULL,
         email TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS exam_results (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        total_questions INTEGER NOT NULL,
+        correct_answers INTEGER NOT NULL,
+        time_spent INTEGER NOT NULL,
+        timestamp TEXT NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users (id)
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS exam_question_results (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        exam_result_id INTEGER,
+        question_id INTEGER,
+        user_answer TEXT NOT NULL,
+        correct_answer TEXT NOT NULL,
+        FOREIGN KEY (exam_result_id) REFERENCES exam_results (id),
+        FOREIGN KEY (question_id) REFERENCES questions (id)
       )
     ''');
 
@@ -108,12 +134,12 @@ class DatabaseHelper {
     ''');
 
     try {
-      final String sql = await rootBundle.loadString(
+      // Load quiz data
+      final String quizSql = await rootBundle.loadString(
         'assets/database/quiz_data.sql',
       );
-      List<String> statements = sql.split(';');
-
-      for (String statement in statements) {
+      List<String> quizStatements = quizSql.split(';');
+      for (String statement in quizStatements) {
         if (statement.trim().isNotEmpty) {
           await db.execute(statement);
         }
@@ -235,7 +261,7 @@ class DatabaseHelper {
     return Question(
       id: id,
       categoryId: question.categoryId,
-      questionText: question.questionText,
+      text: question.text,
       correctAnswer: question.correctAnswer,
       options: question.options,
       explanation: question.explanation,
@@ -254,12 +280,17 @@ class DatabaseHelper {
     });
   }
 
-  Future<List<Question>> getRandomQuestions(int count) async {
+  Future<List<Question>> getRandomQuestions(int limit) async {
     final db = await database;
-    final maps = await db.query('questions', orderBy: 'RANDOM()', limit: count);
-    return List.generate(maps.length, (i) {
-      return Question.fromMap(maps[i].cast<String, dynamic>());
-    });
+    final List<Map<String, dynamic>> maps = await db.rawQuery(
+      '''
+      SELECT * FROM questions 
+      ORDER BY RANDOM() 
+      LIMIT ?
+    ''',
+      [limit],
+    );
+    return List.generate(maps.length, (i) => Question.fromMap(maps[i]));
   }
 
   Future<String> getQuestionText(int questionId) async {
@@ -421,5 +452,75 @@ class DatabaseHelper {
       [categoryId],
     );
     return Sqflite.firstIntValue(result) ?? 0;
+  }
+
+  Future<int> insertExamResult(ExamResult result) async {
+    final db = await database;
+    final values = {
+      'user_id': result.userId,
+      'total_questions': result.totalQuestions,
+      'correct_answers': result.correctAnswers,
+      'time_spent': result.timeSpent,
+      'timestamp': result.timestamp,
+    };
+    return await db.insert('exam_results', values);
+  }
+
+  Future<List<ExamResult>> getExamResults(int userId) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'exam_results',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      orderBy: 'timestamp DESC',
+    );
+    return List.generate(maps.length, (i) => ExamResult.fromMap(maps[i]));
+  }
+
+  Future<void> insertExamQuestionResult(ExamQuestionResult result) async {
+    final db = await database;
+    await db.insert('exam_question_results', result.toMap());
+  }
+
+  Future<List<ExamQuestionResult>> getExamQuestionResults(
+    int examResultId,
+  ) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'exam_question_results',
+      where: 'exam_result_id = ?',
+      whereArgs: [examResultId],
+    );
+    return List.generate(
+      maps.length,
+      (i) => ExamQuestionResult.fromMap(maps[i]),
+    );
+  }
+
+  Future<void> deleteDatabase() async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, 'quiz_data.sql');
+    await databaseFactory.deleteDatabase(path);
+    _database = null;
+  }
+
+  Future<void> recreateDatabase() async {
+    await deleteDatabase();
+    await database; // This will trigger database creation
+  }
+
+  Future<User?> getUserById(int id) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'users',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+
+    if (maps.isEmpty) {
+      return null;
+    }
+
+    return User.fromMap(maps.first);
   }
 }

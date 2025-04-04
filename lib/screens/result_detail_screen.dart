@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:test/database/database_helper.dart';
-import 'package:test/models/question_result.dart';
 import 'package:confetti/confetti.dart';
+import 'package:test/models/question_result.dart';
 import 'package:test/screens/question_detail_screen.dart';
 
 class ResultDetailScreen extends StatefulWidget {
@@ -309,57 +309,6 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
                       ),
                     ],
                   ),
-                  if (!isCorrect) ...[
-                    SizedBox(height: 16),
-                    Divider(),
-                    SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Your Answer:',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                              Text(
-                                result.userAnswer,
-                                style: GoogleFonts.poppins(
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.red[800],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Correct Answer:',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                              Text(
-                                result.correctAnswer,
-                                style: GoogleFonts.poppins(
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.green[800],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
                 ],
               ),
             ),

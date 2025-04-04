@@ -14,11 +14,22 @@ class CategoriesScreen extends StatefulWidget {
 class _CategoriesScreenState extends State<CategoriesScreen> {
   late Future<List<Category>> _categoriesFuture;
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _categoriesFuture = _dbHelper.getCategories();
+  }
+
+  List<Category> _filterCategories(List<Category> categories) {
+    if (_searchQuery.isEmpty) return categories;
+    
+    return categories.where((category) {
+      final name = category.name?.toLowerCase() ?? '';
+      final query = _searchQuery.toLowerCase();
+      return name.contains(query);
+    }).toList();
   }
 
   @override
@@ -63,6 +74,30 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     color: Colors.grey[600],
                   ),
                 ),
+                SizedBox(height: 16),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: TextField(
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Search categories...',
+                      prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -77,6 +112,31 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return Center(child: Text('No categories available'));
                 } else {
+                  final filteredCategories = _filterCategories(snapshot.data!);
+                  
+                  if (filteredCategories.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.search_off,
+                            size: 64,
+                            color: Colors.grey[400],
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'No categories found',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
                   return Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: GridView.builder(
@@ -86,9 +146,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         mainAxisSpacing: 16,
                         childAspectRatio: 1.0,
                       ),
-                      itemCount: snapshot.data!.length,
+                      itemCount: filteredCategories.length,
                       itemBuilder: (context, index) {
-                        final category = snapshot.data![index];
+                        final category = filteredCategories[index];
                         return _buildCategoryCard(context, category);
                       },
                     ),
@@ -130,9 +190,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 ),
                 child: Center(
                   child: Icon(
-                    _getCategoryIcon(
-                      category.name ?? 'default',
-                    ), // Handle null value
+                    _getCategoryIcon(category.name ?? 'default'),
                     size: 40,
                     color: Colors.indigo[800],
                   ),
@@ -148,7 +206,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      category.name ?? 'Unknown', // Handle null value
+                      category.name ?? 'Unknown',
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -159,8 +217,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     ),
                     SizedBox(height: 2),
                     Text(
-                      category.description ??
-                          'No description available', // Handle null value
+                      category.description ?? 'No description available',
                       style: GoogleFonts.poppins(
                         fontSize: 11,
                         color: Colors.grey[600],
@@ -180,24 +237,20 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   IconData _getCategoryIcon(String categoryName) {
     switch (categoryName.toLowerCase()) {
-      case 'science':
+      case 'mathematics':
+        return Icons.calculate;
+      case 'physics':
         return Icons.science;
+      case 'chemistry':
+        return Icons.science_outlined;
+      case 'biology':
+        return Icons.biotech;
       case 'history':
-        return Icons.history_edu;
+        return Icons.history;
       case 'geography':
         return Icons.public;
-      case 'math':
-        return Icons.calculate;
-      case 'sports':
-        return Icons.sports;
-      case 'movies':
-        return Icons.movie;
-      case 'music':
-        return Icons.music_note;
-      case 'art':
-        return Icons.palette;
       default:
-        return Icons.quiz;
+        return Icons.category;
     }
   }
 }
