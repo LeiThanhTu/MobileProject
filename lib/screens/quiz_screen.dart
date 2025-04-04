@@ -211,12 +211,7 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   Widget build(BuildContext context) {
     final question = widget.questions[_currentQuestionIndex];
-    final answers = [
-      question.optionA,
-      question.optionB,
-      question.optionC,
-      question.optionD,
-    ];
+    final answers = question.options.split('|');
 
     return WillPopScope(
       onWillPop: () async {
@@ -352,20 +347,11 @@ class _QuizScreenState extends State<QuizScreen> {
 
   Widget _buildAnswerOption(String answer, String correctAnswer) {
     bool isSelected = _selectedAnswer == answer;
-    bool isCorrect = answer == correctAnswer;
 
     Color backgroundColor = Colors.white;
     Color borderColor = Colors.grey[300]!;
 
-    if (_answered) {
-      if (isCorrect) {
-        backgroundColor = Colors.green[50]!;
-        borderColor = Colors.green[400]!;
-      } else if (isSelected) {
-        backgroundColor = Colors.red[50]!;
-        borderColor = Colors.red[400]!;
-      }
-    } else if (isSelected) {
+    if (isSelected) {
       backgroundColor = Colors.indigo[50]!;
       borderColor = Colors.indigo[400]!;
     }
@@ -396,18 +382,10 @@ class _QuizScreenState extends State<QuizScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color:
-                      isSelected && _answered
-                          ? (isCorrect ? Colors.green[700] : Colors.red[700])
-                          : Colors.black87,
+                  color: isSelected ? Colors.indigo[800] : Colors.black87,
                 ),
               ),
             ),
-            if (_answered)
-              Icon(
-                isCorrect ? Icons.check_circle : Icons.cancel,
-                color: isCorrect ? Colors.green[600] : Colors.red[600],
-              ),
           ],
         ),
       ),

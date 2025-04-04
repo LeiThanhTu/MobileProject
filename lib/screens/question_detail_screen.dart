@@ -44,12 +44,7 @@ class QuestionDetailScreen extends StatelessWidget {
           }
 
           final question = snapshot.data!;
-          final options = [
-            question.optionA,
-            question.optionB,
-            question.optionC,
-            question.optionD,
-          ];
+          final options = question.options.split('|');
 
           return SingleChildScrollView(
             padding: EdgeInsets.all(20),

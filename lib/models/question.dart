@@ -2,66 +2,60 @@ import 'dart:convert';
 
 class Question {
   final int? id;
-  final int categoryId;
-  final String questionText;
+  final int? categoryId;
+  final String text;
   final String correctAnswer;
-  final List<String> options;
+  final String options;
   final String? explanation;
   final String? imageUrl;
 
-  String get text => questionText;
-  String get optionA => options[0];
-  String get optionB => options[1];
-  String get optionC => options[2];
-  String get optionD => options[3];
-
   Question({
     this.id,
-    required this.categoryId,
-    required this.questionText,
+    this.categoryId,
+    required this.text,
     required this.correctAnswer,
     required this.options,
     this.explanation,
     this.imageUrl,
   });
 
+  factory Question.fromMap(Map<String, dynamic> map) {
+    return Question(
+      id: map['id'],
+      categoryId: map['category_id'],
+      text: map['question_text'],
+      correctAnswer: map['correct_answer'],
+      options: map['options'],
+      explanation: map['explanation'],
+      imageUrl: map['image_url'],
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'category_id': categoryId,
-      'question_text': questionText,
+      'question_text': text,
       'correct_answer': correctAnswer,
-      'options': options.join('|'),
+      'options': options,
       'explanation': explanation,
       'image_url': imageUrl,
     };
   }
 
-  factory Question.fromMap(Map<String, dynamic> map) {
-    return Question(
-      id: map['id'] as int?,
-      categoryId: map['category_id'] as int,
-      questionText: map['question_text'] as String,
-      correctAnswer: map['correct_answer'] as String,
-      options: (map['options'] as String).split('|'),
-      explanation: map['explanation'] as String?,
-      imageUrl: map['image_url'] as String?,
-    );
-  }
-
   Question copyWith({
     int? id,
     int? categoryId,
-    String? questionText,
+    String? text,
     String? correctAnswer,
-    List<String>? options,
+    String? options,
     String? explanation,
     String? imageUrl,
   }) {
     return Question(
       id: id ?? this.id,
       categoryId: categoryId ?? this.categoryId,
-      questionText: questionText ?? this.questionText,
+      text: text ?? this.text,
       correctAnswer: correctAnswer ?? this.correctAnswer,
       options: options ?? this.options,
       explanation: explanation ?? this.explanation,

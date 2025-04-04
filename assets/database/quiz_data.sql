@@ -5,6 +5,24 @@ CREATE TABLE IF NOT EXISTS categories (
   description TEXT,
   imageUrl TEXT
 );
+CREATE TABLE IF NOT EXISTS exam_question_results (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  exam_result_id INTEGER,
+  question_id INTEGER,
+  user_answer TEXT NOT NULL,
+  correct_answer TEXT NOT NULL,
+  FOREIGN KEY (exam_result_id) REFERENCES exam_results (id),
+  FOREIGN KEY (question_id) REFERENCES questions (id)
+);
+CREATE TABLE IF NOT EXISTS exam_results (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER,
+  total_questions INTEGER NOT NULL,
+  correct_answers INTEGER NOT NULL,
+  time_spent INTEGER NOT NULL,
+  timestamp TEXT NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users (id)
+);
 CREATE TABLE IF NOT EXISTS question_results (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   result_id INTEGER,
@@ -55,12 +73,12 @@ INSERT INTO "categories" ("id","name","description","imageUrl") VALUES (1,'Toán
  (4,'Sinh học','Kiến thức về cơ thể người, động vật và thực vật','assets/images/biology.png'),
  (5,'Lịch sử','Các sự kiện lịch sử quan trọng của Việt Nam và thế giới','assets/images/history.png'),
  (6,'Địa lý','Kiến thức về địa lý tự nhiên và kinh tế xã hội','assets/images/geography.png');
-INSERT INTO "questions" ("id","category_id","question_text","correct_answer","options","explanation","image_url") VALUES (1,1,'Phương trình x² + 2x + 1 = 0 có bao nhiêu nghiệm?','1','0|1|2|Vô số','Đây là phương trình (x + 1)² = 0, nên chỉ có một nghiệm x = -1',NULL),
- (2,1,'Tổng các góc trong tam giác là bao nhiêu độ?','180','90|180|270|360','Tổng các góc trong tam giác luôn bằng 180 độ',NULL),
- (3,1,'Diện tích hình tròn được tính bằng công thức nào? (Xem hình minh họa)','πr²','2πr|πr²|2πr²|πd','Công thức tính diện tích hình tròn là S = πr², trong đó r là bán kính','assets/images/math/circle.png'),
- (4,2,'Đơn vị đo lực là gì?','Newton','Pascal|Newton|Joule|Watt','Newton (N) là đơn vị đo lực trong hệ SI',NULL),
- (5,2,'Hãy xác định loại chuyển động trong hình','Chuyển động thẳng đều','Chuyển động tròn|Chuyển động thẳng đều|Chuyển động cong|Chuyển động biến đổi','Vật di chuyển trên một đường thẳng với vận tốc không đổi','assets/images/physics/velocity.png'),
- (6,2,'Định luật 3 Newton nói về điều gì?','Tác dụng và phản tác dụng','Quán tính|Gia tốc|Tác dụng và phản tác dụng|Vạn vật hấp dẫn','Định luật 3 Newton: Mọi tác dụng lực đều có phản tác dụng lực ngược chiều và có độ lớn bằng nhau',NULL),
+INSERT INTO "questions" ("id","category_id","question_text","correct_answer","options","explanation","image_url") VALUES (1,1,'Phương trình x² + 2x + 1 = 0 có bao nhiêu nghiệm?','1','0|1|2|Vô số','Đây là phương trình (x + 1)² = 0, nên chỉ có một nghiệm x = -1','assets/images/math/equation.png'),
+ (2,1,'Tổng các góc trong tam giác là bao nhiêu độ?','180','90|180|270|360','Tổng các góc trong tam giác luôn bằng 180 độ','assets/images/math/triangle.png'),
+ (3,1,'Diện tích hình tròn được tính bằng công thức nào?','πr²','2πr|πr²|2πr²|πd','Công thức tính diện tích hình tròn là S = πr², trong đó r là bán kính','assets/images/math/circle.png'),
+ (4,2,'Đơn vị đo lực là gì?','Newton','Pascal|Newton|Joule|Watt','Newton (N) là đơn vị đo lực trong hệ SI','assets/images/physics/force.png'),
+ (5,2,'Công thức tính vận tốc là gì?','v = s/t','v = s*t|v = s/t|v = t/s|v = s+t','Vận tốc được tính bằng quãng đường chia cho thời gian','assets/images/physics/velocity.png'),
+ (6,2,'Định luật 3 Newton nói về điều gì?','Tác dụng và phản tác dụng','Quán tính|Gia tốc|Tác dụng và phản tác dụng|Vạn vật hấp dẫn','Định luật 3 Newton: Mọi tác dụng lực đều có phản tác dụng lực ngược chiều và có độ lớn bằng nhau','assets/images/physics/newton.png'),
  (7,3,'Công thức hóa học của nước là gì?','H₂O','CO₂|H₂O|O₂|N₂','Nước được tạo thành từ 2 nguyên tử Hydro và 1 nguyên tử Oxy','assets/images/chemistry/water.png'),
  (8,3,'Nguyên tố nào phổ biến nhất trong vỏ Trái Đất?','Oxy','Sắt|Oxy|Carbon|Silicon','Oxy chiếm khoảng 46.6% khối lượng vỏ Trái Đất','assets/images/chemistry/earth.png'),
  (9,3,'pH của dung dịch trung tính là bao nhiêu?','7','0|7|14|1','Dung dịch có pH = 7 được coi là trung tính','assets/images/chemistry/ph_scale.png'),
