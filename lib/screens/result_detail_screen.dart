@@ -57,7 +57,7 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Quiz Results',
+          'Kết quả',
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
             color: Colors.indigo[800],
@@ -287,7 +287,7 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
                                 ),
                                 SizedBox(width: 8),
                                 Text(
-                                  isCorrect ? 'Correct' : 'Incorrect',
+                                  isCorrect ? 'Đúng' : 'Sai',
                                   style: GoogleFonts.poppins(
                                     fontWeight: FontWeight.w500,
                                     color:

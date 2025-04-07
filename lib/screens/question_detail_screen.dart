@@ -25,7 +25,7 @@ class QuestionDetailScreen extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Question Detail',
+          'Chi tiết câu hỏi',
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
             color: Colors.indigo[800],
@@ -40,7 +40,7 @@ class QuestionDetailScreen extends StatelessWidget {
             return Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData) {
-            return Center(child: Text('Question not found'));
+            return Center(child: Text('Không tim thấy câu hỏi'));
           }
 
           final question = snapshot.data!;
@@ -109,7 +109,7 @@ class QuestionDetailScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Explanation:',
+                          'Giải thích:',
                           style: GoogleFonts.poppins(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,

@@ -38,8 +38,9 @@ class _LoginScreenState extends State {
         ).login(_emailController.text.trim(), _passwordController.text);
 
         if (success) {
-          Navigator.of(context).pushReplacement(
+          Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (context) => HomeScreen()),
+            (route) => false,
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(

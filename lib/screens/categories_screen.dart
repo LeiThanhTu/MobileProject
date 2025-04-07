@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:test/database/database_helper.dart';
 import 'package:test/models/category.dart';
 import 'package:test/providers/user_provider.dart';
 import 'package:test/screens/quiz_intro_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class CategoriesScreen extends StatefulWidget {
   @override
@@ -24,7 +24,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   List<Category> _filterCategories(List<Category> categories) {
     if (_searchQuery.isEmpty) return categories;
-    
+
     return categories.where((category) {
       final name = category.name?.toLowerCase() ?? '';
       final query = _searchQuery.toLowerCase();
@@ -59,7 +59,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Hello, ${user?.name ?? 'User'}!',
+                  'Xin chào, ${user?.name ?? 'User'}!',
                   style: GoogleFonts.poppins(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -68,7 +68,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'Choose a category to start a quiz',
+                  'Bạn muốn học gì nào?',
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     color: Colors.grey[600],
@@ -88,7 +88,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       });
                     },
                     decoration: InputDecoration(
-                      hintText: 'Search categories...',
+                      hintText: 'Tìm kiếm...',
                       prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.symmetric(
@@ -108,12 +108,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
+                  return Center(child: Text('Lỗi: ${snapshot.error}'));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(child: Text('No categories available'));
+                  return Center(child: Text('Không có danh mục nào'));
                 } else {
                   final filteredCategories = _filterCategories(snapshot.data!);
-                  
+
                   if (filteredCategories.isEmpty) {
                     return Center(
                       child: Column(
@@ -126,7 +126,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                           ),
                           SizedBox(height: 16),
                           Text(
-                            'No categories found',
+                            'Không tìm thấy danh mục nào',
                             style: GoogleFonts.poppins(
                               fontSize: 16,
                               color: Colors.grey[600],
@@ -217,7 +217,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     ),
                     SizedBox(height: 2),
                     Text(
-                      category.description ?? 'No description available',
+                      category.description ?? 'Chưa có mô tả',
                       style: GoogleFonts.poppins(
                         fontSize: 11,
                         color: Colors.grey[600],
@@ -236,21 +236,22 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   IconData _getCategoryIcon(String categoryName) {
-    switch (categoryName.toLowerCase()) {
-      case 'mathematics':
-        return Icons.calculate;
-      case 'physics':
-        return Icons.science;
-      case 'chemistry':
-        return Icons.science_outlined;
-      case 'biology':
-        return Icons.biotech;
-      case 'history':
-        return Icons.history;
-      case 'geography':
-        return Icons.public;
-      default:
-        return Icons.category;
+    final name = categoryName.toLowerCase().trim();
+
+    if (name.contains('java')) {
+      return Icons.coffee;
+    } else if (name.contains('javascript')) {
+      return Icons.javascript;
+    } else if (name.contains('kotlin')) {
+      return Icons.android;
+    } else if (name.contains('python')) {
+      return Icons.terminal;
+    } else if (name.contains('sql')) {
+      return Icons.storage;
+    } else if (name.contains('c#') || name.contains('c sharp')) {
+      return Icons.code;
+    } else {
+      return Icons.category;
     }
   }
 }

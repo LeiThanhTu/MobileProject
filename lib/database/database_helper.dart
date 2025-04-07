@@ -5,6 +5,8 @@ import 'package:test/models/category.dart';
 import 'package:test/models/question.dart';
 import 'package:test/models/question_result.dart';
 import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:test/models/result.dart';
 import 'package:test/models/user.dart';
@@ -20,7 +22,7 @@ class DatabaseHelper {
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-    _database = await _initDB('quiz_data.sql');
+    _database = await _initDB('db.db');
     return _database!;
   }
 
@@ -28,125 +30,95 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _createDB,
-      onConfigure: _onConfigure,
-    );
+    print('Database path: $path');
+
+    try {
+      // Kiểm tra và tạo thư mục
+      await Directory(dirname(path)).create(recursive: true);
+
+      // Xóa database cũ nếu tồn tại
+      if (await databaseExists(path)) {
+        print('Deleting existing database...');
+        await deleteDatabase(path);
+      }
+
+      // Copy từ assets
+      print('Copying database from assets...');
+      try {
+        // Đọc file từ assets
+        final ByteData data = await rootBundle.load(join('assets', 'db.db'));
+        print('Database file size: ${data.lengthInBytes} bytes');
+
+        // Ghi file vào thiết bị
+        final List<int> bytes = data.buffer.asUint8List(
+          data.offsetInBytes,
+          data.lengthInBytes,
+        );
+        final File file = File(path);
+        await file.writeAsBytes(bytes, flush: true);
+
+        // Kiểm tra file đã được ghi
+        if (await file.exists()) {
+          print('Database file written successfully');
+          print('Written file size: ${await file.length()} bytes');
+        } else {
+          throw Exception('Database file not written');
+        }
+      } catch (e) {
+        print('Error copying database: $e');
+        throw Exception('Failed to copy database: $e');
+      }
+
+      // Mở và kiểm tra database
+      print('Opening database...');
+      final db = await openDatabase(
+        path,
+        readOnly: false,
+        singleInstance: true,
+      );
+
+      // Kiểm tra cấu trúc database
+      print('Checking database structure...');
+      try {
+        final tables = await db.rawQuery(
+          'SELECT name FROM sqlite_master WHERE type="table"',
+        );
+        print('Tables in database: ${tables.map((t) => t['name']).join(', ')}');
+
+        // Kiểm tra từng bảng
+        for (var table in tables) {
+          final tableName = table['name'] as String;
+          if (!['android_metadata', 'sqlite_sequence'].contains(tableName)) {
+            try {
+              final count = Sqflite.firstIntValue(
+                await db.rawQuery('SELECT COUNT(*) FROM "$tableName"'),
+              );
+              print('$tableName count: $count');
+
+              // In ra một vài bản ghi đầu tiên để kiểm tra
+              final rows = await db.query(tableName, limit: 1);
+              if (rows.isNotEmpty) {
+                print('First row in $tableName: ${rows.first}');
+              }
+            } catch (e) {
+              print('Error checking table $tableName: $e');
+            }
+          }
+        }
+      } catch (e) {
+        print('Error checking database structure: $e');
+        throw e;
+      }
+
+      return db;
+    } catch (e) {
+      print('Error initializing database: $e');
+      rethrow;
+    }
   }
 
   Future<void> _onConfigure(Database db) async {
     await db.execute('PRAGMA foreign_keys = ON');
-  }
-
-  Future<void> _createDB(Database db, int version) async {
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL,
-        email TEXT NOT NULL UNIQUE,
-        password TEXT NOT NULL
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS exam_results (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
-        total_questions INTEGER NOT NULL,
-        correct_answers INTEGER NOT NULL,
-        time_spent INTEGER NOT NULL,
-        timestamp TEXT NOT NULL,
-        FOREIGN KEY (user_id) REFERENCES users (id)
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS exam_question_results (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        exam_result_id INTEGER,
-        question_id INTEGER,
-        user_answer TEXT NOT NULL,
-        correct_answer TEXT NOT NULL,
-        FOREIGN KEY (exam_result_id) REFERENCES exam_results (id),
-        FOREIGN KEY (question_id) REFERENCES questions (id)
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE categories (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        description TEXT,
-        imageUrl TEXT
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE questions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        category_id INTEGER,
-        question_text TEXT NOT NULL,
-        correct_answer TEXT NOT NULL,
-        options TEXT NOT NULL,
-        explanation TEXT,
-        image_url TEXT,
-        FOREIGN KEY (category_id) REFERENCES categories (id)
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE user_progress (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
-        question_id INTEGER,
-        is_correct BOOLEAN,
-        review_date DATETIME,
-        FOREIGN KEY (user_id) REFERENCES users (id),
-        FOREIGN KEY (question_id) REFERENCES questions (id)
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE results (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
-        category_id INTEGER,
-        score INTEGER NOT NULL,
-        total_questions INTEGER NOT NULL,
-        date TEXT NOT NULL,
-        FOREIGN KEY (user_id) REFERENCES users (id),
-        FOREIGN KEY (category_id) REFERENCES categories (id)
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE question_results (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        result_id INTEGER,
-        question_id INTEGER,
-        user_answer TEXT NOT NULL,
-        correct_answer TEXT NOT NULL,
-        FOREIGN KEY (result_id) REFERENCES results (id),
-        FOREIGN KEY (question_id) REFERENCES questions (id)
-      )
-    ''');
-
-    try {
-      // Load quiz data
-      final String quizSql = await rootBundle.loadString(
-        'assets/database/quiz_data.sql',
-      );
-      List<String> quizStatements = quizSql.split(';');
-      for (String statement in quizStatements) {
-        if (statement.trim().isNotEmpty) {
-          await db.execute(statement);
-        }
-      }
-    } catch (e) {
-      print('Error loading initial data: $e');
-    }
   }
 
   // User operations
@@ -407,23 +379,32 @@ class DatabaseHelper {
     String correctAnswer,
   ) async {
     final db = await database;
-    await db.insert(
-      'question_results',
-      {
-            'result_id': resultId,
-            'question_id': questionId,
-            'user_answer': userAnswer,
-            'correct_answer': correctAnswer,
-          }
-          as Map<String, Object?>,
-    );
+    try {
+      // Kiểm tra cấu trúc bảng
+      final tableInfo = await db.rawQuery(
+        'PRAGMA table_info(question_results)',
+      );
+      print(
+        'question_results columns: ${tableInfo.map((col) => col['name']).join(', ')}',
+      );
+
+      await db.insert('question_results', {
+        'result_id': resultId, // Sử dụng result_id thay vì quiz_result_id
+        'question_id': questionId,
+        'user_answer': userAnswer,
+        'correct_answer': correctAnswer,
+      });
+    } catch (e) {
+      print('Error saving question result: $e');
+      rethrow;
+    }
   }
 
   Future<List<QuestionResult>> getQuestionResults(int resultId) async {
     final db = await database;
     final maps = await db.query(
       'question_results',
-      where: 'result_id = ?',
+      where: 'result_id = ?', // Sử dụng result_id thay vì quiz_result_id
       whereArgs: [resultId],
     );
     return List.generate(maps.length, (i) {
@@ -497,15 +478,13 @@ class DatabaseHelper {
     );
   }
 
-  Future<void> deleteDatabase() async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'quiz_data.sql');
+  Future<void> deleteDatabase(String path) async {
     await databaseFactory.deleteDatabase(path);
     _database = null;
   }
 
   Future<void> recreateDatabase() async {
-    await deleteDatabase();
+    await deleteDatabase(await getDatabasesPath() + '/db.db');
     await database; // This will trigger database creation
   }
 

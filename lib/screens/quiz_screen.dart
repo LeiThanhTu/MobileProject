@@ -80,6 +80,12 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   void _moveToNextQuestion() {
+    // Lưu câu trả lời hiện tại nếu chưa có
+    final currentQuestion = widget.questions[_currentQuestionIndex];
+    if (!_userAnswers.containsKey(currentQuestion.id!)) {
+      _userAnswers[currentQuestion.id!] = ''; // Lưu câu trả lời trống
+    }
+
     if (_currentQuestionIndex < widget.questions.length - 1) {
       setState(() {
         _currentQuestionIndex++;

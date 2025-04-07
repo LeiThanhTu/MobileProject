@@ -95,10 +95,7 @@ class _QuizIntroScreenState extends State<QuizIntroScreen> {
                   SizedBox(height: 8),
                   _buildInfoItem('Duration', '$questionCount minutes'),
                   SizedBox(height: 8),
-                  _buildInfoItem(
-                    'Difficulty',
-                    _getDifficultyLevel(questionCount),
-                  ),
+               
                   Spacer(),
                   SizedBox(
                     width: double.infinity,
@@ -167,15 +164,15 @@ class _QuizIntroScreenState extends State<QuizIntroScreen> {
     );
   }
 
-  String _getDifficultyLevel(int questionCount) {
-    if (questionCount <= 5) {
-      return 'Easy';
-    } else if (questionCount <= 10) {
-      return 'Medium';
-    } else {
-      return 'Hard';
-    }
-  }
+  // String _getDifficultyLevel(int questionCount) {
+  //   if (questionCount <= 5) {
+  //     return 'Easy';
+  //   } else if (questionCount <= 10) {
+  //     return 'Medium';
+  //   } else {
+  //     return 'Hard';
+  //   }
+  // }
 
   IconData _getCategoryIcon(String categoryName) {
     switch (categoryName.toLowerCase()) {
