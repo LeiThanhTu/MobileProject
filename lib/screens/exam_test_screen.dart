@@ -7,6 +7,7 @@ import 'package:test/models/exam_result.dart';
 import 'package:test/models/exam_question_result.dart';
 import 'package:test/models/question.dart';
 import 'package:test/providers/user_provider.dart';
+import 'package:test/widgets/quiz_image.dart';
 
 class ExamTestScreen extends StatefulWidget {
   @override
@@ -267,121 +268,128 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
           ),
         ),
         centerTitle: true,
-        elevation: 0,
         backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.close, color: Colors.indigo[600]),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder:
-                  (context) => AlertDialog(
-                    title: Text('Thoát bài thi?'),
-                    content: Text(
-                      'Bạn có chắc chắn muốn thoát? Tiến trình sẽ không được lưu.',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: Text('Tiếp tục'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          Navigator.of(context).pop();
-                        },
-                        child: Text('Thoát'),
-                      ),
-                    ],
-                  ),
-            );
-          },
+          onPressed: () => _showExitDialog(context),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  'Câu ${_currentQuestionIndex + 1}/${_questions.length}',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.indigo[800],
-                  ),
+      body: Column(
+        children: [
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 5,
+                  offset: Offset(0, 2),
                 ),
-                Spacer(),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color:
-                        _timeLeft > 600
-                            ? Colors.green[600]
-                            : _timeLeft > 300
-                            ? Colors.orange[600]
-                            : Colors.red[600],
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.timer, color: Colors.white, size: 16),
-                      SizedBox(width: 4),
-                      Text(
-                        '${_timeLeft ~/ 60}:${(_timeLeft % 60).toString().padLeft(2, '0')}',
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Câu ${_currentQuestionIndex + 1}/${_questions.length}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.indigo[800],
                       ),
-                    ],
+                    ),
+                    _buildTimer(),
+                  ],
+                ),
+                SizedBox(height: 12),
+                Container(
+                  height: 120,
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    scrollDirection: Axis.horizontal,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      mainAxisSpacing: 8,
+                      crossAxisSpacing: 8,
+                      childAspectRatio: 1 / 1.2,
+                    ),
+                    itemCount: _questions.length,
+                    itemBuilder: (context, index) {
+                      bool isAnswered = _userAnswers.containsKey(index);
+                      bool isCurrent = index == _currentQuestionIndex;
+                      return InkWell(
+                        onTap: () => _goToQuestion(index),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color:
+                                isCurrent
+                                    ? Colors.indigo[100]
+                                    : isAnswered
+                                    ? Colors.green[50]
+                                    : Colors.grey[100],
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color:
+                                  isCurrent
+                                      ? Colors.indigo
+                                      : isAnswered
+                                      ? Colors.green
+                                      : Colors.grey[300]!,
+                              width: isCurrent ? 2 : 1,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              '${index + 1}',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight:
+                                    isCurrent || isAnswered
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
+                                color:
+                                    isCurrent
+                                        ? Colors.indigo
+                                        : isAnswered
+                                        ? Colors.green[700]
+                                        : Colors.grey[700],
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 20),
-            Expanded(
-              child: SingleChildScrollView(
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      question.text,
+                      'Câu ${_currentQuestionIndex + 1}. ${question.text}',
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: Colors.indigo[800],
+                        color:
+                            Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white
+                                : Colors.indigo[800],
                       ),
                     ),
                     if (question.imageUrl != null &&
                         question.imageUrl!.isNotEmpty) ...[
                       SizedBox(height: 20),
-                      Container(
-                        width: double.infinity,
-                        height: 200,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: Colors.grey[200],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.asset(
-                            question.imageUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Center(
-                                child: Icon(
-                                  Icons.error_outline,
-                                  color: Colors.grey[400],
-                                  size: 40,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ),
+                      QuizImage.practice(context, imageUrl: question.imageUrl),
                     ],
                     SizedBox(height: 30),
                     ...List.generate(
@@ -389,125 +397,102 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
                       (index) =>
                           _buildAnswerOption(options[index], labels[index]),
                     ),
+                    SizedBox(height: 20),
                   ],
                 ),
               ),
             ),
-            SizedBox(height: 20),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: List.generate(
-                _questions.length,
-                (index) => GestureDetector(
-                  onTap: () => _goToQuestion(index),
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color:
-                          _userAnswers.containsKey(index)
-                              ? Colors.indigo[100]
-                              : Colors.grey[200],
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color:
-                            _currentQuestionIndex == index
-                                ? Colors.indigo[600]!
-                                : Colors.transparent,
-                        width: 2,
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${index + 1}',
-                        style: GoogleFonts.poppins(
-                          color:
-                              _userAnswers.containsKey(index)
-                                  ? Colors.indigo[800]
-                                  : Colors.grey[600],
-                          fontWeight: FontWeight.w600,
+          ),
+          Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  offset: Offset(0, -2),
+                  blurRadius: 5,
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed:
+                            _currentQuestionIndex > 0
+                                ? () => _goToQuestion(_currentQuestionIndex - 1)
+                                : null,
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          backgroundColor: Colors.grey[200],
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Câu trước',
+                          style: GoogleFonts.poppins(
+                            color: Colors.grey[800],
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed:
+                            _currentQuestionIndex < _questions.length - 1
+                                ? () => _goToQuestion(_currentQuestionIndex + 1)
+                                : null,
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          backgroundColor: Colors.grey[200],
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Câu sau',
+                          style: GoogleFonts.poppins(
+                            color: Colors.grey[800],
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ),
-            SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
+                SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
                   child: ElevatedButton(
-                    onPressed:
-                        _currentQuestionIndex > 0
-                            ? () => _goToQuestion(_currentQuestionIndex - 1)
-                            : null,
+                    onPressed: _submitExam,
                     style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 15),
-                      backgroundColor: Colors.grey[200],
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: Colors.indigo[600],
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     child: Text(
-                      'Câu trước',
+                      'Nộp bài',
                       style: GoogleFonts.poppins(
-                        color: Colors.grey[800],
+                        fontSize: 16,
                         fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed:
-                        _currentQuestionIndex < _questions.length - 1
-                            ? () => _goToQuestion(_currentQuestionIndex + 1)
-                            : null,
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 15),
-                      backgroundColor: Colors.grey[200],
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: Text(
-                      'Câu sau',
-                      style: GoogleFonts.poppins(
-                        color: Colors.grey[800],
-                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
                       ),
                     ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _submitExam,
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 15),
-                  backgroundColor: Colors.indigo[600],
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Text(
-                  'Nộp bài',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -574,6 +559,60 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildTimer() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color:
+            _timeLeft > 600
+                ? Colors.green[600]
+                : _timeLeft > 300
+                ? Colors.orange[600]
+                : Colors.red[600],
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.timer, color: Colors.white, size: 16),
+          SizedBox(width: 4),
+          Text(
+            '${_timeLeft ~/ 60}:${(_timeLeft % 60).toString().padLeft(2, '0')}',
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showExitDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text('Thoát bài thi?'),
+            content: Text(
+              'Bạn có chắc chắn muốn thoát? Tiến trình sẽ không được lưu.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('Tiếp tục'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                },
+                child: Text('Thoát'),
+              ),
+            ],
+          ),
     );
   }
 }

@@ -82,7 +82,7 @@ class _LoginScreenState extends State {
             children: [
               SizedBox(height: 60),
               Text(
-                'Welcome Back!',
+                'Chào mừng bạn đến với MasterQuiz!',
                 style: GoogleFonts.poppins(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -91,7 +91,7 @@ class _LoginScreenState extends State {
               ),
               SizedBox(height: 8),
               Text(
-                'Sign in to continue',
+                'Hãy đăng nhập để tiếp tục',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   color: Colors.grey[600],
@@ -122,12 +122,12 @@ class _LoginScreenState extends State {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
+                          return 'Vui lòng nhập email của bạn';
                         }
                         if (!RegExp(
                           r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
                         ).hasMatch(value)) {
-                          return 'Please enter a valid email';
+                          return 'Vui lòng nhập địa chỉ email hợp lệ';
                         }
                         return null;
                       },
@@ -165,10 +165,10 @@ class _LoginScreenState extends State {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your password';
+                          return 'Vui lòng nhập mật khẩu của bạn';
                         }
                         if (value.length < 6) {
-                          return 'Password must be at least 6 characters';
+                          return 'Mật khẩu phải có ít nhất 6 ký tự';
                         }
                         return null;
                       },
@@ -210,7 +210,7 @@ class _LoginScreenState extends State {
                                   ),
                                 )
                                 : Text(
-                                  'Login',
+                                  'Đăng nhập',
                                   style: GoogleFonts.poppins(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -223,7 +223,7 @@ class _LoginScreenState extends State {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          "Don't have an account? ",
+                          "Bạn chưa có tài khoản?",
                           style: GoogleFonts.poppins(color: Colors.grey[600]),
                         ),
                         TextButton(
@@ -238,7 +238,7 @@ class _LoginScreenState extends State {
                             foregroundColor: Colors.indigo[600],
                           ),
                           child: Text(
-                            'Sign Up',
+                            'Đăng ký',
                             style: GoogleFonts.poppins(
                               fontWeight: FontWeight.w600,
                             ),

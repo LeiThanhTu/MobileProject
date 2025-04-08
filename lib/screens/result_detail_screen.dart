@@ -222,6 +222,7 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
                       questionId: result.questionId,
                       userAnswer: result.userAnswer,
                       correctAnswer: result.correctAnswer,
+                      questionIndex: questionNumber - 1,
                     ),
               ),
             );

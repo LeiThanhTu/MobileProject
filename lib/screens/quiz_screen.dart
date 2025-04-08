@@ -8,6 +8,7 @@ import 'package:test/models/question.dart';
 import 'package:test/models/result.dart';
 import 'package:test/providers/user_provider.dart';
 import 'package:test/screens/result_detail_screen.dart';
+import '../widgets/quiz_image.dart';
 
 class QuizScreen extends StatefulWidget {
   final Category category;
@@ -166,14 +167,14 @@ class _QuizScreenState extends State<QuizScreen> {
             borderRadius: BorderRadius.circular(15),
           ),
           title: Text(
-            'Exit Quiz?',
+            'Thoát Quiz',
             style: GoogleFonts.poppins(
               fontWeight: FontWeight.bold,
               color: Colors.indigo[800],
             ),
           ),
           content: Text(
-            'Are you sure you want to quit? Your progress will not be saved.',
+            'Bạn có chắc chắn muốn thoát quiz không? \nKết quả sẽ không được lưu!',
             style: GoogleFonts.poppins(fontSize: 15),
           ),
           actions: [
@@ -182,7 +183,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 Navigator.of(context).pop(false);
               },
               child: Text(
-                'Continue Quiz',
+                'Tiếp tục',
                 style: GoogleFonts.poppins(
                   color: Colors.indigo[600],
                   fontWeight: FontWeight.w500,
@@ -200,7 +201,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 ),
               ),
               child: Text(
-                'Exit',
+                'Thoát',
                 style: GoogleFonts.poppins(
                   color: Colors.white,
                   fontWeight: FontWeight.w500,
@@ -297,41 +298,25 @@ class _QuizScreenState extends State<QuizScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        question.text,
+                        'Câu ${_currentQuestionIndex + 1}. ${question.text}',
                         style: GoogleFonts.poppins(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color: Colors.indigo[800],
+                          color:
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white
+                                  : Colors.indigo[800],
                         ),
                       ),
                       if (question.imageUrl != null &&
-                          question.imageUrl!.isNotEmpty) ...[
-                        SizedBox(height: 20),
-                        Container(
-                          width: double.infinity,
-                          height: 200,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.grey[200],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.asset(
-                              question.imageUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Center(
-                                  child: Icon(
-                                    Icons.error_outline,
-                                    color: Colors.grey[400],
-                                    size: 40,
-                                  ),
-                                );
-                              },
-                            ),
+                          question.imageUrl!.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16.0),
+                          child: QuizImage.quiz(
+                            context,
+                            imageUrl: question.imageUrl,
                           ),
                         ),
-                      ],
                       SizedBox(height: 30),
                       ...List.generate(
                         answers.length,

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test/providers/user_provider.dart';
 import 'package:test/providers/theme_provider.dart';
 import 'package:test/screens/login_screen.dart';
+import 'package:test/screens/onboarding_screen.dart';
+import 'package:test/screens/settings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   @override
@@ -72,7 +75,15 @@ class ProfileScreen extends StatelessWidget {
                       isThemeMode: true,
                     ),
                     _buildProfileItem(context, Icons.settings, 'Settings', () {
-                      // Navigate to settings
+                      if (user?.email != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => SettingsScreen(email: user!.email),
+                          ),
+                        );
+                      }
                     }),
                     _buildProfileItem(
                       context,
@@ -95,6 +106,12 @@ class ProfileScreen extends StatelessWidget {
                         ],
                       );
                     }),
+                    _buildProfileItem(
+                      context,
+                      Icons.refresh,
+                      'Xem lại giới thiệu',
+                      () => _resetOnboarding(context),
+                    ),
                     SizedBox(height: 40),
                     SizedBox(
                       width: double.infinity,
@@ -189,6 +206,18 @@ class ProfileScreen extends StatelessWidget {
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         onTap: isThemeMode ? null : onTap,
       ),
+    );
+  }
+
+  Future<void> _resetOnboarding(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('hasSeenOnboarding');
+
+    if (!context.mounted) return;
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => OnboardingScreen()),
+      (route) => false,
     );
   }
 }

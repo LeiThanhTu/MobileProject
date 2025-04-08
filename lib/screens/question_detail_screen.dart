@@ -2,16 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:test/database/database_helper.dart';
 import 'package:test/models/question.dart';
+import 'package:test/widgets/quiz_image.dart';
 
 class QuestionDetailScreen extends StatelessWidget {
   final int questionId;
   final String userAnswer;
   final String correctAnswer;
+  final int questionIndex;
 
   QuestionDetailScreen({
     required this.questionId,
     required this.userAnswer,
     required this.correctAnswer,
+    required this.questionIndex,
   });
 
   @override
@@ -52,41 +55,24 @@ class QuestionDetailScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  question.text,
+                  'Câu ${questionIndex + 1}. ${question.text}',
                   style: GoogleFonts.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: Colors.indigo[800],
+                    color:
+                        Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : Colors.indigo[800],
                   ),
                 ),
-                if (question.imageUrl != null &&
-                    question.imageUrl!.isNotEmpty) ...[
-                  SizedBox(height: 20),
-                  Container(
-                    width: double.infinity,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: Colors.grey[200],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.asset(
-                        question.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Center(
-                            child: Icon(
-                              Icons.error_outline,
-                              color: Colors.grey[400],
-                              size: 40,
-                            ),
-                          );
-                        },
-                      ),
+                if (question.imageUrl != null && question.imageUrl!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    child: QuizImage.detail(
+                      context,
+                      imageUrl: question.imageUrl,
                     ),
                   ),
-                ],
                 SizedBox(height: 30),
                 ...options.map(
                   (option) => _buildAnswerOption(
