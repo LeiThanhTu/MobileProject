@@ -1,36 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import 'package:google_fonts/google_fonts.dart';
+import 'package:test/screens/home/home_screen.dart';
+import 'package:test/screens/auth/register_screen.dart';
+import 'package:test/screens/profile/forgot_password_screen.dart';
 import 'package:test/providers/user_provider.dart';
-import 'package:test/screens/home_screen.dart';
-import 'package:test/screens/login_screen.dart';
 
-class RegisterScreen extends StatefulWidget {
+class LoginScreen extends StatefulWidget {
   @override
-  _RegisterScreenState createState() => _RegisterScreenState();
+  _LoginScreenState createState() => _LoginScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _LoginScreenState extends State {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
-    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  Future<void> _register() async {
+  Future _login() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
@@ -40,26 +35,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
         bool success = await Provider.of<UserProvider>(
           context,
           listen: false,
-        ).register(
-          _nameController.text.trim(),
-          _emailController.text.trim(),
-          _passwordController.text,
-        );
+        ).login(_emailController.text.trim(), _passwordController.text);
 
         if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Đăng ký thành công! Vui lòng đăng nhập'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => LoginScreen()),
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => HomeScreen()),
+            (route) => false,
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Registration failed. Email might be in use.'),
+              content: Text('Email hoặc mật khẩu không đúng'),
               backgroundColor: Colors.red,
             ),
           );
@@ -67,7 +53,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('An error occurred: $e'),
+            content: Text('Đã xảy ra lỗi: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -79,22 +65,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+  void _forgotPassword() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => ForgotPasswordScreen()));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              SizedBox(height: 60),
               Text(
-                'Tạo tài khoản tại đây!',
+                'Chào mừng bạn đến với MasterQuiz!',
                 style: GoogleFonts.poppins(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -103,42 +91,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               SizedBox(height: 8),
               Text(
-                'Đăng ký để bắt đầu hành trình học tập của bạn',
+                'Hãy đăng nhập để tiếp tục',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   color: Colors.grey[600],
                 ),
               ),
-              SizedBox(height: 30),
+              SizedBox(height: 40),
               Form(
                 key: _formKey,
                 child: Column(
                   children: [
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: InputDecoration(
-                        labelText: 'Full Name',
-                        prefixIcon: Icon(Icons.person_outline),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.indigo[400]!),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Vui lòng nhập tên của bạn';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 20),
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
@@ -159,7 +122,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Vui lòng nhập địa chỉ email của bạn';
+                          return 'Vui lòng nhập email của bạn';
                         }
                         if (!RegExp(
                           r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
@@ -210,54 +173,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         return null;
                       },
                     ),
-                    SizedBox(height: 20),
-                    TextFormField(
-                      controller: _confirmPasswordController,
-                      obscureText: _obscureConfirmPassword,
-                      decoration: InputDecoration(
-                        labelText: 'Confirm Password',
-                        prefixIcon: Icon(Icons.lock_outline),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureConfirmPassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _forgotPassword,
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.indigo[600],
+                        ),
+                        child: Text(
+                          'Quên mật khẩu?',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w500,
                           ),
-                          onPressed: () {
-                            setState(() {
-                              _obscureConfirmPassword =
-                                  !_obscureConfirmPassword;
-                            });
-                          },
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.indigo[400]!),
                         ),
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Vui lòng xác nhận mật khẩu của bạn';
-                        }
-                        if (value != _passwordController.text) {
-                          return 'Mật khẩu không khớp';
-                        }
-                        return null;
-                      },
                     ),
-                    SizedBox(height: 30),
+                    SizedBox(height: 20),
                     SizedBox(
                       width: double.infinity,
                       height: 55,
                       child: ElevatedButton(
-                        onPressed: _isLoading ? null : _register,
+                        onPressed: _isLoading ? null : _login,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.indigo[600],
                           foregroundColor: Colors.white,
@@ -269,12 +205,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child:
                             _isLoading
                                 ? CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                  valueColor: AlwaysStoppedAnimation(
                                     Colors.white,
                                   ),
                                 )
                                 : Text(
-                                  'Đăng ký',
+                                  'Đăng nhập',
                                   style: GoogleFonts.poppins(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -287,18 +223,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          "Bạn đã có tài khoản?",
+                          "Bạn chưa có tài khoản?",
                           style: GoogleFonts.poppins(color: Colors.grey[600]),
                         ),
                         TextButton(
                           onPressed: () {
-                            Navigator.of(context).pop();
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => RegisterScreen(),
+                              ),
+                            );
                           },
                           style: TextButton.styleFrom(
                             foregroundColor: Colors.indigo[600],
                           ),
                           child: Text(
-                            'Đăng nhập',
+                            'Đăng ký',
                             style: GoogleFonts.poppins(
                               fontWeight: FontWeight.w600,
                             ),

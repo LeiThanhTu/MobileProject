@@ -1,31 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:test/screens/home_screen.dart';
-import 'package:test/screens/register_screen.dart';
-import 'package:test/screens/forgot_password_screen.dart';
-import 'package:test/providers/user_provider.dart';
 
-class LoginScreen extends StatefulWidget {
+import 'package:google_fonts/google_fonts.dart';
+import 'package:test/providers/user_provider.dart';
+import 'package:test/screens/home/home_screen.dart';
+import 'package:test/screens/auth/login_screen.dart';
+
+class RegisterScreen extends StatefulWidget {
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  _RegisterScreenState createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State {
+class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  Future _login() async {
+  Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
@@ -35,17 +40,26 @@ class _LoginScreenState extends State {
         bool success = await Provider.of<UserProvider>(
           context,
           listen: false,
-        ).login(_emailController.text.trim(), _passwordController.text);
+        ).register(
+          _nameController.text.trim(),
+          _emailController.text.trim(),
+          _passwordController.text,
+        );
 
         if (success) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => HomeScreen()),
-            (route) => false,
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Đăng ký thành công! Vui lòng đăng nhập'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => LoginScreen()),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Email hoặc mật khẩu không đúng'),
+              content: Text('Registration failed. Email might be in use.'),
               backgroundColor: Colors.red,
             ),
           );
@@ -53,7 +67,7 @@ class _LoginScreenState extends State {
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Đã xảy ra lỗi: $e'),
+            content: Text('An error occurred: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -65,24 +79,22 @@ class _LoginScreenState extends State {
     }
   }
 
-  void _forgotPassword() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (context) => ForgotPasswordScreen()));
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 60),
               Text(
-                'Chào mừng bạn đến với MasterQuiz!',
+                'Tạo tài khoản tại đây!',
                 style: GoogleFonts.poppins(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -91,17 +103,42 @@ class _LoginScreenState extends State {
               ),
               SizedBox(height: 8),
               Text(
-                'Hãy đăng nhập để tiếp tục',
+                'Đăng ký để bắt đầu hành trình học tập của bạn',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   color: Colors.grey[600],
                 ),
               ),
-              SizedBox(height: 40),
+              SizedBox(height: 30),
               Form(
                 key: _formKey,
                 child: Column(
                   children: [
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: InputDecoration(
+                        labelText: 'Full Name',
+                        prefixIcon: Icon(Icons.person_outline),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.indigo[400]!),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Vui lòng nhập tên của bạn';
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 20),
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
@@ -122,7 +159,7 @@ class _LoginScreenState extends State {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Vui lòng nhập email của bạn';
+                          return 'Vui lòng nhập địa chỉ email của bạn';
                         }
                         if (!RegExp(
                           r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
@@ -173,27 +210,54 @@ class _LoginScreenState extends State {
                         return null;
                       },
                     ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: _forgotPassword,
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.indigo[600],
-                        ),
-                        child: Text(
-                          'Quên mật khẩu?',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w500,
+                    SizedBox(height: 20),
+                    TextFormField(
+                      controller: _confirmPasswordController,
+                      obscureText: _obscureConfirmPassword,
+                      decoration: InputDecoration(
+                        labelText: 'Confirm Password',
+                        prefixIcon: Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureConfirmPassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                           ),
+                          onPressed: () {
+                            setState(() {
+                              _obscureConfirmPassword =
+                                  !_obscureConfirmPassword;
+                            });
+                          },
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.indigo[400]!),
                         ),
                       ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Vui lòng xác nhận mật khẩu của bạn';
+                        }
+                        if (value != _passwordController.text) {
+                          return 'Mật khẩu không khớp';
+                        }
+                        return null;
+                      },
                     ),
-                    SizedBox(height: 20),
+                    SizedBox(height: 30),
                     SizedBox(
                       width: double.infinity,
                       height: 55,
                       child: ElevatedButton(
-                        onPressed: _isLoading ? null : _login,
+                        onPressed: _isLoading ? null : _register,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.indigo[600],
                           foregroundColor: Colors.white,
@@ -205,12 +269,12 @@ class _LoginScreenState extends State {
                         child:
                             _isLoading
                                 ? CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation(
+                                  valueColor: AlwaysStoppedAnimation<Color>(
                                     Colors.white,
                                   ),
                                 )
                                 : Text(
-                                  'Đăng nhập',
+                                  'Đăng ký',
                                   style: GoogleFonts.poppins(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -223,22 +287,18 @@ class _LoginScreenState extends State {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          "Bạn chưa có tài khoản?",
+                          "Bạn đã có tài khoản?",
                           style: GoogleFonts.poppins(color: Colors.grey[600]),
                         ),
                         TextButton(
                           onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => RegisterScreen(),
-                              ),
-                            );
+                            Navigator.of(context).pop();
                           },
                           style: TextButton.styleFrom(
                             foregroundColor: Colors.indigo[600],
                           ),
                           child: Text(
-                            'Đăng ký',
+                            'Đăng nhập',
                             style: GoogleFonts.poppins(
                               fontWeight: FontWeight.w600,
                             ),

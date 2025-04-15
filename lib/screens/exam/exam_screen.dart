@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:test/providers/user_provider.dart';
-import 'package:test/screens/exam_test_screen.dart';
+import 'package:test/screens/exam/exam_test_screen.dart';
 
 class ExamScreen extends StatelessWidget {
   @override

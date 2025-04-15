@@ -8,6 +8,7 @@ import 'package:test/models/exam_question_result.dart';
 import 'package:test/models/question.dart';
 import 'package:test/providers/user_provider.dart';
 import 'package:test/widgets/quiz_image.dart';
+import 'package:test/widgets/exam_result_dialog.dart';
 
 class ExamTestScreen extends StatefulWidget {
   @override
@@ -18,6 +19,7 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   List<Question> _questions = [];
   Map<int, String> _userAnswers = {};
+  Map<int, bool> _flaggedQuestions = {};
   int _currentQuestionIndex = 0;
   int _timeLeft = 1800; // 30 phút
   late Timer _timer;
@@ -68,30 +70,36 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
     });
   }
 
+  void _toggleFlag() {
+    setState(() {
+      _flaggedQuestions[_currentQuestionIndex] =
+          !(_flaggedQuestions[_currentQuestionIndex] ?? false);
+    });
+  }
+
   Future<void> _submitExam() async {
     if (_isSubmitted) return;
 
     // Hiển thị dialog xác nhận nộp bài
     final shouldSubmit = await showDialog<bool>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('Xác nhận nộp bài'),
-            content: Text('Bạn có chắc chắn muốn nộp bài?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text('Làm tiếp'),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.indigo[600],
-                ),
-                child: Text('Nộp bài', style: TextStyle(color: Colors.white)),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: Text('Xác nhận nộp bài'),
+        content: Text('Bạn có chắc chắn muốn nộp bài?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('Làm tiếp'),
           ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.indigo[600],
+            ),
+            child: Text('Nộp bài', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
     );
 
     if (shouldSubmit != true) return;
@@ -152,8 +160,7 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
           // Thử lại việc lưu
           final resultId = await _dbHelper.insertExamResult(examResult);
           print(
-            'Saved exam result with ID: $resultId after recreating database',
-          );
+              'Saved exam result with ID: $resultId after recreating database');
 
           for (int i = 0; i < _questions.length; i++) {
             if (_userAnswers.containsKey(i)) {
@@ -173,67 +180,14 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
 
       if (!mounted) return;
 
-      // Hiển thị kết quả
+      // Hiển thị kết quả với dialog mới
       await showDialog(
         context: context,
         barrierDismissible: false,
-        builder:
-            (context) => WillPopScope(
-              onWillPop: () async => false,
-              child: AlertDialog(
-                title: Text('Kết quả bài thi'),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Số câu đúng: $correctAnswers/${_questions.length}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: List.generate(
-                        _questions.length,
-                        (index) => Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color:
-                                _userAnswers[index] ==
-                                        _questions[index].correctAnswer
-                                    ? Colors.green
-                                    : Colors.red,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Center(
-                            child: Text(
-                              '${index + 1}',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                actions: [
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(); // Đóng dialog
-                      Navigator.of(context).pop(); // Quay về màn hình trước
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.indigo[600],
-                    ),
-                    child: Text('Đóng', style: TextStyle(color: Colors.white)),
-                  ),
-                ],
-              ),
-            ),
+        builder: (context) => ExamResultDialog(
+          correctAnswers: correctAnswers,
+          totalQuestions: _questions.length,
+        ),
       );
     } catch (e) {
       print('Error saving exam result: $e');
@@ -274,6 +228,19 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
           icon: Icon(Icons.close, color: Colors.indigo[600]),
           onPressed: () => _showExitDialog(context),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              _flaggedQuestions[_currentQuestionIndex] == true
+                  ? Icons.flag
+                  : Icons.flag_outlined,
+              color: _flaggedQuestions[_currentQuestionIndex] == true
+                  ? Colors.orange[600]
+                  : Colors.indigo[600],
+            ),
+            onPressed: _toggleFlag,
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -321,44 +288,59 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
                     itemBuilder: (context, index) {
                       bool isAnswered = _userAnswers.containsKey(index);
                       bool isCurrent = index == _currentQuestionIndex;
+                      bool isFlagged = _flaggedQuestions[index] == true;
                       return InkWell(
                         onTap: () => _goToQuestion(index),
                         child: Container(
                           decoration: BoxDecoration(
-                            color:
-                                isCurrent
-                                    ? Colors.indigo[100]
-                                    : isAnswered
+                            color: isCurrent
+                                ? Colors.indigo[100]
+                                : isAnswered
                                     ? Colors.green[50]
                                     : Colors.grey[100],
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color:
-                                  isCurrent
-                                      ? Colors.indigo
-                                      : isAnswered
+                              color: isCurrent
+                                  ? Colors.indigo
+                                  : isAnswered
                                       ? Colors.green
                                       : Colors.grey[300]!,
                               width: isCurrent ? 2 : 1,
                             ),
                           ),
-                          child: Center(
-                            child: Text(
-                              '${index + 1}',
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                fontWeight:
-                                    isCurrent || isAnswered
-                                        ? FontWeight.w600
-                                        : FontWeight.normal,
-                                color:
-                                    isCurrent
-                                        ? Colors.indigo
-                                        : isAnswered
-                                        ? Colors.green[700]
-                                        : Colors.grey[700],
+                          child: Stack(
+                            children: [
+                              Center(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      '${index + 1}',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                        fontWeight: isCurrent || isAnswered
+                                            ? FontWeight.w600
+                                            : FontWeight.normal,
+                                        color: isCurrent
+                                            ? Colors.indigo
+                                            : isAnswered
+                                                ? Colors.green[700]
+                                                : Colors.grey[700],
+                                      ),
+                                    ),
+                                    if (isFlagged)
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 4),
+                                        child: Icon(
+                                          Icons.flag,
+                                          size: 14,
+                                          color: Colors.orange[600],
+                                        ),
+                                      ),
+                                  ],
+                                ),
                               ),
-                            ),
+                            ],
                           ),
                         ),
                       );
@@ -380,10 +362,9 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color:
-                            Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white
-                                : Colors.indigo[800],
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : Colors.indigo[800],
                       ),
                     ),
                     if (question.imageUrl != null &&
@@ -422,10 +403,9 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
                   children: [
                     Expanded(
                       child: ElevatedButton(
-                        onPressed:
-                            _currentQuestionIndex > 0
-                                ? () => _goToQuestion(_currentQuestionIndex - 1)
-                                : null,
+                        onPressed: _currentQuestionIndex > 0
+                            ? () => _goToQuestion(_currentQuestionIndex - 1)
+                            : null,
                         style: ElevatedButton.styleFrom(
                           padding: EdgeInsets.symmetric(vertical: 12),
                           backgroundColor: Colors.grey[200],
@@ -445,10 +425,9 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
                     SizedBox(width: 10),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed:
-                            _currentQuestionIndex < _questions.length - 1
-                                ? () => _goToQuestion(_currentQuestionIndex + 1)
-                                : null,
+                        onPressed: _currentQuestionIndex < _questions.length - 1
+                            ? () => _goToQuestion(_currentQuestionIndex + 1)
+                            : null,
                         style: ElevatedButton.styleFrom(
                           padding: EdgeInsets.symmetric(vertical: 12),
                           backgroundColor: Colors.grey[200],
@@ -566,10 +545,9 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color:
-            _timeLeft > 600
-                ? Colors.green[600]
-                : _timeLeft > 300
+        color: _timeLeft > 600
+            ? Colors.green[600]
+            : _timeLeft > 300
                 ? Colors.orange[600]
                 : Colors.red[600],
         borderRadius: BorderRadius.circular(20),
@@ -590,29 +568,62 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
     );
   }
 
-  void _showExitDialog(BuildContext context) {
-    showDialog(
+  Future<bool?> _showExitDialog(BuildContext context) {
+    return showDialog<bool>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('Thoát bài thi?'),
-            content: Text(
-              'Bạn có chắc chắn muốn thoát? Tiến trình sẽ không được lưu.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text('Tiếp tục'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
-                },
-                child: Text('Thoát'),
-              ),
-            ],
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
           ),
+          title: Text(
+            'Thoát Quiz',
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.bold,
+              color: Colors.indigo[800],
+            ),
+          ),
+          content: Text(
+            'Bạn có chắc chắn muốn thoát quiz không? \nKết quả sẽ không được lưu!',
+            style: GoogleFonts.poppins(fontSize: 15),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: Text(
+                'Tiếp tục',
+                style: GoogleFonts.poppins(
+                  color: Colors.indigo[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+                Navigator.of(context)
+                    .pop(); // Thêm dòng này để thoát màn hình thi
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red[400],
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'Thoát',
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+          actionsPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        );
+      },
     );
   }
 }

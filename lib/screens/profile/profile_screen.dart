@@ -4,9 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test/providers/user_provider.dart';
 import 'package:test/providers/theme_provider.dart';
-import 'package:test/screens/login_screen.dart';
-import 'package:test/screens/onboarding_screen.dart';
-import 'package:test/screens/settings_screen.dart';
+import 'package:test/screens/auth/login_screen.dart';
+import 'package:test/screens/profile/onboarding_screen.dart';
+import 'package:test/screens/profile/settings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   @override
@@ -99,7 +99,7 @@ class ProfileScreen extends StatelessWidget {
                         context: context,
                         applicationName: 'QuizMaster',
                         applicationVersion: '1.0.0',
-                        applicationLegalese: '© 2024 QuizMaster',
+                        applicationLegalese: '© 2025 QuizMaster',
                         children: [
                           SizedBox(height: 16),
                           Text('A Flutter Quiz App with SQLite database.'),

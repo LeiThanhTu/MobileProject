@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:test/screens/login_screen.dart';
+import 'package:test/screens/auth/login_screen.dart';
+import 'package:test/services/notification_service.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({Key? key}) : super(key: key);
@@ -81,6 +82,10 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   Future<void> _completeOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('hasSeenOnboarding', true);
+
+    // Hiển thị thông báo chào mừng
+    final notificationService = NotificationService();
+    await notificationService.showWelcomeNotification();
 
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
@@ -196,8 +201,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                                   style: GoogleFonts.poppins(
                                     fontSize: 16,
                                     color: _pages[index].textColor.withOpacity(
-                                      0.9,
-                                    ),
+                                          0.9,
+                                        ),
                                     height: 1.4,
                                   ),
                                   textAlign: TextAlign.center,
@@ -240,10 +245,9 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                       width: _currentPage == index ? 24 : 8,
                       height: 8,
                       decoration: BoxDecoration(
-                        color:
-                            _currentPage == index
-                                ? _pages[_currentPage].textColor
-                                : _pages[_currentPage].textColor.withOpacity(
+                        color: _currentPage == index
+                            ? _pages[_currentPage].textColor
+                            : _pages[_currentPage].textColor.withOpacity(
                                   0.3,
                                 ),
                         borderRadius: BorderRadius.circular(4),

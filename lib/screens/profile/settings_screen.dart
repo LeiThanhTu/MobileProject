@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:test/screens/change_password_screen.dart';
+import 'package:test/screens/profile/change_password_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   final String email;

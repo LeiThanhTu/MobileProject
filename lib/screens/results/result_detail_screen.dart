@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:test/database/database_helper.dart';
 import 'package:confetti/confetti.dart';
 import 'package:test/models/question_result.dart';
-import 'package:test/screens/question_detail_screen.dart';
+import 'package:test/screens/quizz/question_detail_screen.dart';
 
 class ResultDetailScreen extends StatefulWidget {
   final int resultId;
@@ -54,7 +54,8 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
         backgroundColor: Colors.transparent,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios, color: Colors.indigo[600]),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst)
+,
         ),
         title: Text(
           'Kết quả',

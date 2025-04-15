@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:test/database/database_helper.dart';
 import 'package:test/models/category.dart';
 import 'package:test/models/question.dart';
-import 'package:test/screens/quiz_screen.dart';
+import 'package:test/screens/quizz/quiz_screen.dart';
 
 class QuizIntroScreen extends StatefulWidget {
   final Category category;
@@ -175,25 +175,22 @@ class _QuizIntroScreenState extends State<QuizIntroScreen> {
   // }
 
   IconData _getCategoryIcon(String categoryName) {
-    switch (categoryName.toLowerCase()) {
-      case 'science':
-        return Icons.science;
-      case 'history':
-        return Icons.history_edu;
-      case 'geography':
-        return Icons.public;
-      case 'math':
-        return Icons.calculate;
-      case 'sports':
-        return Icons.sports;
-      case 'movies':
-        return Icons.movie;
-      case 'music':
-        return Icons.music_note;
-      case 'art':
-        return Icons.palette;
-      default:
-        return Icons.quiz;
+ final name = categoryName.toLowerCase().trim();
+
+    if (name.contains('java')) {
+      return Icons.coffee;
+    } else if (name.contains('javascript')) {
+      return Icons.javascript;
+    } else if (name.contains('kotlin')) {
+      return Icons.android;
+    } else if (name.contains('python')) {
+      return Icons.terminal;
+    } else if (name.contains('sql')) {
+      return Icons.storage;
+    } else if (name.contains('c#') || name.contains('c sharp')) {
+      return Icons.code;
+    } else {
+      return Icons.quiz;
     }
   }
 }

@@ -7,8 +7,8 @@ import 'package:test/models/category.dart';
 import 'package:test/models/question.dart';
 import 'package:test/models/result.dart';
 import 'package:test/providers/user_provider.dart';
-import 'package:test/screens/result_detail_screen.dart';
-import '../widgets/quiz_image.dart';
+import 'package:test/screens/results/result_detail_screen.dart';
+import '../../widgets/quiz_image.dart';
 
 class QuizScreen extends StatefulWidget {
   final Category category;
@@ -135,13 +135,12 @@ class _QuizScreenState extends State<QuizScreen> {
 
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder:
-                (context) => ResultDetailScreen(
-                  resultId: resultId,
-                  categoryName: widget.category.name,
-                  score: _score,
-                  totalQuestions: widget.questions.length,
-                ),
+            builder: (context) => ResultDetailScreen(
+              resultId: resultId,
+              categoryName: widget.category.name,
+              score: _score,
+              totalQuestions: widget.questions.length,
+            ),
           ),
         );
       } catch (e) {
@@ -302,10 +301,9 @@ class _QuizScreenState extends State<QuizScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color:
-                              Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.white
-                                  : Colors.indigo[800],
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white
+                              : Colors.indigo[800],
                         ),
                       ),
                       if (question.imageUrl != null &&

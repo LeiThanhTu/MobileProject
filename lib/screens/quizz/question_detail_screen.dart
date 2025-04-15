@@ -59,10 +59,9 @@ class QuestionDetailScreen extends StatelessWidget {
                   style: GoogleFonts.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color:
-                        Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white
-                            : Colors.indigo[800],
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : Colors.indigo[800],
                   ),
                 ),
                 if (question.imageUrl != null && question.imageUrl!.isNotEmpty)
@@ -79,6 +78,7 @@ class QuestionDetailScreen extends StatelessWidget {
                     option,
                     userAnswer: userAnswer,
                     correctAnswer: correctAnswer,
+                    options: options,
                   ),
                 ),
                 if (question.explanation != null &&
@@ -126,9 +126,11 @@ class QuestionDetailScreen extends StatelessWidget {
     String answer, {
     required String userAnswer,
     required String correctAnswer,
+    required List<String> options,
   }) {
     bool isUserAnswer = answer == userAnswer;
     bool isCorrectAnswer = answer == correctAnswer;
+    final labels = ['A', 'B', 'C', 'D'];
 
     Color backgroundColor = Colors.white;
     Color borderColor = Colors.grey[300]!;
@@ -170,19 +172,42 @@ class QuestionDetailScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
+          Container(
+            width: 28,
+            height: 28,
+            margin: EdgeInsets.only(right: 12),
+            decoration: BoxDecoration(
+              color: isUserAnswer || isCorrectAnswer
+                  ? (isUserAnswer && !isCorrectAnswer
+                      ? Colors.red[400]
+                      : Colors.green[400])
+                  : Colors.grey[200],
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                labels[options.indexOf(answer)],
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: isUserAnswer || isCorrectAnswer
+                      ? Colors.white
+                      : Colors.grey[600],
+                ),
+              ),
+            ),
+          ),
           Expanded(
             child: Text(
               answer,
               style: GoogleFonts.poppins(
                 fontSize: 16,
-                fontWeight:
-                    isUserAnswer || isCorrectAnswer
-                        ? FontWeight.w600
-                        : FontWeight.normal,
-                color:
-                    isUserAnswer && !isCorrectAnswer
-                        ? Colors.red[700]
-                        : Colors.black87,
+                fontWeight: isUserAnswer || isCorrectAnswer
+                    ? FontWeight.w600
+                    : FontWeight.normal,
+                color: isUserAnswer && !isCorrectAnswer
+                    ? Colors.red[700]
+                    : Colors.black87,
               ),
             ),
           ),

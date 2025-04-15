@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:test/providers/user_provider.dart';
-import 'package:test/screens/home_screen.dart';
-import 'package:test/screens/login_screen.dart';
+import 'package:test/screens/home/home_screen.dart';
+import 'package:test/screens/auth/login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -11,6 +11,7 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen>
+ // cung cấp bộ đếm (ticker) cho animation  
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;

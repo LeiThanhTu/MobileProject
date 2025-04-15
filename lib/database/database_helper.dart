@@ -1,18 +1,17 @@
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:test/models/category.dart';
+import 'package:test/models/exam_question_result.dart';
+import 'package:test/models/exam_result.dart';
 import 'package:test/models/question.dart';
 import 'package:test/models/question_result.dart';
-import 'dart:async';
-import 'dart:io';
-import 'dart:typed_data';
-
 import 'package:test/models/result.dart';
 import 'package:test/models/user.dart';
 import 'package:test/models/user_progress.dart';
-import 'package:test/models/exam_result.dart';
-import 'package:test/models/exam_question_result.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -36,37 +35,33 @@ class DatabaseHelper {
       // Kiểm tra và tạo thư mục
       await Directory(dirname(path)).create(recursive: true);
 
-      // Xóa database cũ nếu tồn tại
-      if (await databaseExists(path)) {
-        print('Deleting existing database...');
-        await deleteDatabase(path);
-      }
+      // Chỉ copy database từ assets nếu database chưa tồn tại
+      if (!await databaseExists(path)) {
+        print('Copying database from assets...');
+        try {
+          // Đọc file từ assets
+          final ByteData data = await rootBundle.load(join('assets', 'db.db'));
+          print('Database file size: ${data.lengthInBytes} bytes');
 
-      // Copy từ assets
-      print('Copying database from assets...');
-      try {
-        // Đọc file từ assets
-        final ByteData data = await rootBundle.load(join('assets', 'db.db'));
-        print('Database file size: ${data.lengthInBytes} bytes');
+          // Ghi file vào thiết bị
+          final List<int> bytes = data.buffer.asUint8List(
+            data.offsetInBytes,
+            data.lengthInBytes,
+          );
+          final File file = File(path);
+          await file.writeAsBytes(bytes, flush: true);
 
-        // Ghi file vào thiết bị
-        final List<int> bytes = data.buffer.asUint8List(
-          data.offsetInBytes,
-          data.lengthInBytes,
-        );
-        final File file = File(path);
-        await file.writeAsBytes(bytes, flush: true);
-
-        // Kiểm tra file đã được ghi
-        if (await file.exists()) {
-          print('Database file written successfully');
-          print('Written file size: ${await file.length()} bytes');
-        } else {
-          throw Exception('Database file not written');
+          // Kiểm tra file đã được ghi
+          if (await file.exists()) {
+            print('Database file written successfully');
+            print('Written file size: ${await file.length()} bytes');
+          } else {
+            throw Exception('Database file not written');
+          }
+        } catch (e) {
+          print('Error copying database: $e');
+          throw Exception('Failed to copy database: $e');
         }
-      } catch (e) {
-        print('Error copying database: $e');
-        throw Exception('Failed to copy database: $e');
       }
 
       // Mở và kiểm tra database
@@ -334,11 +329,9 @@ class DatabaseHelper {
     return {
       'totalQuestions': map['total_questions'] as int,
       'correctAnswers': map['correct_answers'] as int,
-      'accuracy':
-          map['total_questions'] == 0
-              ? 0.0
-              : (map['correct_answers'] as int) /
-                  (map['total_questions'] as int),
+      'accuracy': map['total_questions'] == 0
+          ? 0.0
+          : (map['correct_answers'] as int) / (map['total_questions'] as int),
     };
   }
 

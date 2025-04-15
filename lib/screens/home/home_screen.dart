@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:test/screens/categories_screen.dart';
-import 'package:test/screens/profile_screen.dart';
-import 'package:test/screens/result_screen.dart';
-import 'package:test/screens/exam_screen.dart';
+import 'package:test/screens/home/categories_screen.dart';
+import 'package:test/screens/profile/profile_screen.dart';
+import 'package:test/screens/results/result_screen.dart';
+import 'package:test/screens/exam/exam_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   @override

@@ -1,7 +1,8 @@
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test/database/database_helper.dart';
 import 'package:test/models/user.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class UserProvider with ChangeNotifier {
   User? _currentUser;

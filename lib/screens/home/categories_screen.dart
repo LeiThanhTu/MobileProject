@@ -3,7 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:test/database/database_helper.dart';
 import 'package:test/models/category.dart';
 import 'package:test/providers/user_provider.dart';
-import 'package:test/screens/quiz_intro_screen.dart';
+import 'package:test/screens/quizz/quiz_intro_screen.dart';
+import 'package:test/widgets/search_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CategoriesScreen extends StatefulWidget {
@@ -22,13 +23,44 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     _categoriesFuture = _dbHelper.getCategories();
   }
 
+  String _normalizeVietnamese(String str) {
+    final vietnamese = 'aAeEoOuUiIdDyY';
+    final latin =
+        'áàạảãâấầậẩẫăắằặẳẵ/ÁÀẠẢÃÂẤẦẬẨẪĂẮẰẶẲẴ/éèẹẻẽêếềệểễ/ÉÈẸẺẼÊẾỀỆỂỄ/óòọỏõôốồộổỗơớờợởỡ/ÓÒỌỎÕÔỐỒỘỔỖƠỚỜỢỞỠ/úùụủũưứừựửữ/ÚÙỤỦŨƯỨỪỰỬỮ/íìịỉĩ/ÍÌỊỈĨ/đ/Đ/ýỳỵỷỹ/ÝỲỴỶỸ'
+            .replaceAll('/', '');
+
+    for (int i = 0; i < vietnamese.length; i++) {
+      str = str.replaceAll(
+          RegExp(latin.substring(i * 6, (i + 1) * 6)), vietnamese[i]);
+    }
+    return str;
+  }
+
   List<Category> _filterCategories(List<Category> categories) {
     if (_searchQuery.isEmpty) return categories;
 
+    final query = _normalizeVietnamese(_searchQuery.toLowerCase().trim());
     return categories.where((category) {
-      final name = category.name?.toLowerCase() ?? '';
-      final query = _searchQuery.toLowerCase();
-      return name.contains(query);
+      final name =
+          _normalizeVietnamese(category.name?.toLowerCase().trim() ?? '');
+      final description = _normalizeVietnamese(
+          category.description?.toLowerCase().trim() ?? '');
+
+      // Tìm kiếm theo tên chính xác trước
+      if (name == query) return true;
+
+      // Sau đó tìm theo từng từ trong tên
+      final nameWords = name.split(' ');
+      final queryWords = query.split(' ');
+
+      // Kiểm tra xem mỗi từ trong query có xuất hiện trong tên không
+      bool matchesName = queryWords.every(
+          (word) => nameWords.any((nameWord) => nameWord.contains(word)));
+
+      // Kiểm tra trong mô tả nếu không tìm thấy trong tên
+      bool matchesDescription = !matchesName && description.contains(query);
+
+      return matchesName || matchesDescription;
     }).toList();
   }
 
@@ -70,33 +102,18 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 Text(
                   'Bạn muốn học gì nào?',
                   style: GoogleFonts.poppins(
-                    fontSize: 14,
+                    fontSize: 16,
                     color: Colors.grey[600],
                   ),
                 ),
                 SizedBox(height: 16),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[300]!),
-                  ),
-                  child: TextField(
-                    onChanged: (value) {
-                      setState(() {
-                        _searchQuery = value;
-                      });
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'Tìm kiếm...',
-                      prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
+                CustomSearchBar(
+                  hintText: 'Tìm kiếm danh mục...',
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
                 ),
               ],
             ),
@@ -251,7 +268,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     } else if (name.contains('c#') || name.contains('c sharp')) {
       return Icons.code;
     } else {
-      return Icons.category;
+      return Icons.quiz;
     }
   }
 }
