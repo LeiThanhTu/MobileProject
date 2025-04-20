@@ -336,13 +336,21 @@ class _QuizScreenState extends State<QuizScreen> {
 
   Widget _buildAnswerOption(String answer, String correctAnswer) {
     bool isSelected = _selectedAnswer == answer;
+    final labels = ['A', 'B', 'C', 'D'];
+    final currentIndex = widget.questions[_currentQuestionIndex].options
+        .split('|')
+        .indexOf(answer);
 
     Color backgroundColor = Colors.white;
     Color borderColor = Colors.grey[300]!;
+    Color labelBackgroundColor = Colors.grey[300]!;
+    Color labelTextColor = Colors.grey[600]!;
 
     if (isSelected) {
       backgroundColor = Colors.indigo[50]!;
       borderColor = Colors.indigo[400]!;
+      labelBackgroundColor = Colors.indigo[600]!;
+      labelTextColor = Colors.white;
     }
 
     return GestureDetector(
@@ -365,6 +373,25 @@ class _QuizScreenState extends State<QuizScreen> {
         ),
         child: Row(
           children: [
+            Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                color: labelBackgroundColor,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Center(
+                child: Text(
+                  labels[currentIndex],
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: labelTextColor,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(width: 12),
             Expanded(
               child: Text(
                 answer,

@@ -13,9 +13,10 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+// khởi tạo database
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
-  static Database? _database;
+  static Database? _database;  // _database là biến static để lưu trữ kết nối db
 
   DatabaseHelper._init();
 

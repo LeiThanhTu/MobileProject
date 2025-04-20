@@ -97,10 +97,10 @@ class _ResultsScreenState extends State<ResultsScreen> {
                 style: GoogleFonts.poppins(fontSize: 16),
               ),
             )
-          : NestedScrollView(
-              headerSliverBuilder: (context, innerBoxIsScrolled) {
-                return [
-                  SliverAppBar(
+          : SafeArea(
+              child: Column(
+                children: [
+                  AppBar(
                     title: Text(
                       'Kết quả của tôi',
                       style: GoogleFonts.poppins(
@@ -111,55 +111,52 @@ class _ResultsScreenState extends State<ResultsScreen> {
                     centerTitle: true,
                     backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                     elevation: 0,
-                    floating: true,
-                    pinned: true,
                   ),
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: _SliverSearchBarDelegate(
-                      searchBar: CustomSearchBar(
-                        hintText: 'Tìm kiếm theo môn học...',
-                        onChanged: (value) {
-                          setState(() {
-                            _searchQuery = value;
-                          });
-                        },
-                        margin: EdgeInsets.all(16),
-                      ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: CustomSearchBar(
+                      hintText: 'Tìm kiếm theo môn học...',
+                      onChanged: (value) {
+                        setState(() {
+                          _searchQuery = value;
+                        });
+                      },
                     ),
                   ),
-                ];
-              },
-              body: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Text(
-                        'Kết quả ôn tập',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.indigo[800],
-                        ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(18),
+                            child: Text(
+                              'Kết quả ôn tập',
+                              style: GoogleFonts.poppins(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.indigo[800],
+                              ),
+                            ),
+                          ),
+                          _buildQuizResults(userId),
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Text(
+                              'Kết quả thi thử',
+                              style: GoogleFonts.poppins(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.indigo[800],
+                              ),
+                            ),
+                          ),
+                          _buildExamResults(userId),
+                        ],
                       ),
                     ),
-                    _buildQuizResults(userId),
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Text(
-                        'Kết quả thi thử',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.indigo[800],
-                        ),
-                      ),
-                    ),
-                    _buildExamResults(userId),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
     );

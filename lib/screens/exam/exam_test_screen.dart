@@ -52,7 +52,9 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
           _timeLeft--;
         } else {
           _timer.cancel();
-          _submitExam();
+          if (!_isSubmitted) {
+            _submitExam(isTimeUp: true);
+          }
         }
       });
     });
@@ -77,32 +79,34 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
     });
   }
 
-  Future<void> _submitExam() async {
+  Future<void> _submitExam({bool isTimeUp = false}) async {
     if (_isSubmitted) return;
 
-    // Hiển thị dialog xác nhận nộp bài
-    final shouldSubmit = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Xác nhận nộp bài'),
-        content: Text('Bạn có chắc chắn muốn nộp bài?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text('Làm tiếp'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.indigo[600],
+    // Hiển thị dialog xác nhận nộp bài nếu chưa hết giờ
+    if (!isTimeUp) {
+      final shouldSubmit = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Xác nhận nộp bài'),
+          content: Text('Bạn có chắc chắn muốn nộp bài?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text('Làm tiếp'),
             ),
-            child: Text('Nộp bài', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.indigo[600],
+              ),
+              child: Text('Nộp bài', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      );
 
-    if (shouldSubmit != true) return;
+      if (shouldSubmit != true) return;
+    }
 
     setState(() {
       _isSubmitted = true;
@@ -450,7 +454,7 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _submitExam,
+                    onPressed: () => _submitExam(),
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 12),
                       backgroundColor: Colors.indigo[600],

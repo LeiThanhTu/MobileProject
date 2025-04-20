@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
+import 'dart:typed_data';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._();
@@ -16,8 +17,10 @@ class NotificationService {
     if (_initialized) return;
 
     tz.initializeTimeZones();
+    tz.setLocalLocation(
+        tz.getLocation('Asia/Ho_Chi_Minh')); // Đặt múi giờ Việt Nam
 
-    // Tạo kênh thông báo cho Android
+    // Tạo kênh thông báo cho Android với âm thanh và độ ưu tiên cao
     const androidChannel = AndroidNotificationChannel(
       'high_importance_channel',
       'Thông báo ứng dụng',
@@ -36,11 +39,14 @@ class NotificationService {
     }
 
     const androidInitialize =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@mipmap/launcher_icon');
     const iOSInitialize = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
+      defaultPresentAlert: true,
+      defaultPresentBadge: true,
+      defaultPresentSound: true,
     );
 
     const initializationSettings = InitializationSettings(
@@ -55,16 +61,6 @@ class NotificationService {
       },
     );
 
-    // Kiểm tra quyền thông báo
-    final notificationSettings = await _notifications
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.getNotificationAppLaunchDetails();
-
-    if (notificationSettings?.didNotificationLaunchApp ?? false) {
-      debugPrint('App launched from notification');
-    }
-
     _initialized = true;
     debugPrint('NotificationService initialized successfully');
   }
@@ -76,7 +72,7 @@ class NotificationService {
     }
 
     try {
-      final androidDetails = const AndroidNotificationDetails(
+      final androidDetails = AndroidNotificationDetails(
         'high_importance_channel',
         'Thông báo ứng dụng',
         channelDescription: 'Kênh thông báo của ứng dụng',
@@ -87,6 +83,7 @@ class NotificationService {
         fullScreenIntent: true,
         category: AndroidNotificationCategory.message,
         visibility: NotificationVisibility.public,
+        icon: '@mipmap/launcher_icon',
       );
 
       final notificationDetails = NotificationDetails(
@@ -112,12 +109,14 @@ class NotificationService {
 
   Future<void> scheduleStudyReminder() async {
     if (!_initialized) {
-      debugPrint('NotificationService not initialized');
-      return;
+      await initialize();
     }
 
     try {
-      final androidDetails = const AndroidNotificationDetails(
+      // Hủy thông báo cũ nếu có
+      await _notifications.cancel(1);
+
+      final androidDetails = AndroidNotificationDetails(
         'high_importance_channel',
         'Thông báo ứng dụng',
         channelDescription: 'Kênh thông báo của ứng dụng',
@@ -127,30 +126,78 @@ class NotificationService {
         enableVibration: true,
         category: AndroidNotificationCategory.reminder,
         visibility: NotificationVisibility.public,
+        fullScreenIntent: true,
+        icon: '@mipmap/launcher_icon',
+      );
+
+      final iOSDetails = const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        interruptionLevel: InterruptionLevel.timeSensitive,
       );
 
       final notificationDetails = NotificationDetails(
         android: androidDetails,
-        iOS: const DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        ),
+        iOS: iOSDetails,
       );
 
-      final scheduledTime =
-          tz.TZDateTime.now(tz.local).add(const Duration(minutes: 30));
+      final now = tz.TZDateTime.now(tz.local);
+      final scheduledDate = now.add(const Duration(minutes: 30));
+
+      // Đảm bảo thời gian lên lịch trong tương lai
+      final effectiveDate = scheduledDate.isBefore(now)
+          ? now.add(const Duration(seconds: 5))
+          : scheduledDate;
+
       await _notifications.zonedSchedule(
         1,
         'Đã đến giờ ôn tập rồi nè! 📚',
         'Hãy quay lại và tiếp tục hành trình của bạn',
-        scheduledTime,
+        effectiveDate,
         notificationDetails,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       );
-      debugPrint("Study reminder scheduled for: $scheduledTime");
+
+      debugPrint("Study reminder scheduled for: $effectiveDate");
     } catch (e) {
       debugPrint('Error scheduling study reminder: $e');
+      // Thử lại với cấu hình đơn giản hơn nếu có lỗi
+      await _scheduleBasicReminder();
+    }
+  }
+
+  Future<void> _scheduleBasicReminder() async {
+    try {
+      final androidDetails = AndroidNotificationDetails(
+        'high_importance_channel',
+        'Thông báo ứng dụng',
+        channelDescription: 'Kênh thông báo của ứng dụng',
+        importance: Importance.max,
+        priority: Priority.high,
+        icon: '@mipmap/launcher_icon',
+      );
+
+      final notificationDetails = NotificationDetails(
+        android: androidDetails,
+        iOS: const DarwinNotificationDetails(),
+      );
+
+      final now = tz.TZDateTime.now(tz.local);
+      final scheduledDate = now.add(const Duration(minutes: 30));
+
+      await _notifications.zonedSchedule(
+        1,
+        'Đã đến giờ ôn tập rồi nè! 📚',
+        'Hãy quay lại và tiếp tục hành trình của bạn',
+        scheduledDate,
+        notificationDetails,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      );
+
+      debugPrint("Basic reminder scheduled for: $scheduledDate");
+    } catch (e) {
+      debugPrint('Error scheduling basic reminder: $e');
     }
   }
 }
