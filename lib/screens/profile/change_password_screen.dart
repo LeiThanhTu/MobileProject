@@ -241,6 +241,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
+                            // hiển thị loading
                             strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation<Color>(
                               Colors.white,

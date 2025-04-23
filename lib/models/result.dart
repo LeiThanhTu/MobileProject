@@ -1,4 +1,5 @@
 class Result {
+  // ?: có thể null
   final int? id;
   final int userId;
   final int categoryId;

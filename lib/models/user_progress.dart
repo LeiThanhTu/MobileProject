@@ -29,6 +29,7 @@ class UserProgress {
       userId: map['user_id'],
       questionId: map['question_id'],
       isCorrect: map['is_correct'] == 1,
+      // chuyển đổi chuỗi thành đối tượng DateTime
       reviewDate: DateTime.parse(map['review_date']),
     );
   }

@@ -11,9 +11,10 @@ class CategoriesScreen extends StatefulWidget {
   @override
   _CategoriesScreenState createState() => _CategoriesScreenState();
 }
-
 class _CategoriesScreenState extends State<CategoriesScreen> {
+  // late: khai báo biến sau khi khởi tạo
   late Future<List<Category>> _categoriesFuture;
+  // DatabaseHelper: lưu trữ dữ liệu trong cơ sở dữ liệu
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   String _searchQuery = '';
 
@@ -31,11 +32,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
     for (int i = 0; i < vietnamese.length; i++) {
       str = str.replaceAll(
+        // RegExp: kiểm tra định dạng chuỗi
+        // latin.substring(i * 6, (i + 1) * 6): lấy chuỗi con từ latin
+        // vietnamese[i]: thay thế chuỗi con từ latin bằng chuỗi con từ vietnamese
           RegExp(latin.substring(i * 6, (i + 1) * 6)), vietnamese[i]);
     }
     return str;
   }
-
+// _filterCategories: lọc danh mục theo tên và mô tả
   List<Category> _filterCategories(List<Category> categories) {
     if (_searchQuery.isEmpty) return categories;
 
@@ -157,10 +161,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   return Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: GridView.builder(
+                      
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
+                        
                         crossAxisSpacing: 16,
+                        // mainAxisSpacing: 16: khoảng cách giữa các dòng
                         mainAxisSpacing: 16,
+                        // childAspectRatio: 1.0: tỉ lệ chiều rộng và chiều cao của các widget
                         childAspectRatio: 1.0,
                       ),
                       itemCount: filteredCategories.length,

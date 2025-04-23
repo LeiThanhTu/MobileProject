@@ -5,7 +5,7 @@ class ExamResult {
   final int correctAnswers;
   final int timeSpent;
   final String timestamp;
-
+  
   ExamResult({
     this.id,
     required this.userId,
@@ -14,7 +14,7 @@ class ExamResult {
     required this.timeSpent,
     required this.timestamp,
   });
-
+// chuyển đổi đối tượng thành map lưu vào database
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -25,7 +25,7 @@ class ExamResult {
       'timestamp': timestamp,
     };
   }
-
+// tạo lại đối tượng từ map lấy từ database
   factory ExamResult.fromMap(Map<String, dynamic> map) {
     return ExamResult(
       id: map['id'],

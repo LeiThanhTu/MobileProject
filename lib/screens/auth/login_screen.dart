@@ -12,6 +12,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State {
+  // GlobalKey: để truy cập vào trạng thái của Form
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -19,6 +20,7 @@ class _LoginScreenState extends State {
   bool _obscurePassword = true;
 
   @override
+  // dispose: Giải phóng tài nguyên khi widget bị xóa khỏi cây widget (khi màn hình bị đóng)
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
@@ -27,13 +29,15 @@ class _LoginScreenState extends State {
 
   Future _login() async {
     if (_formKey.currentState!.validate()) {
+      // setState: cập nhật trạng thái của widget
       setState(() {
         _isLoading = true;
       });
 
       try {
+        // Provider: cung cấp dữ liệu cho các widget con
         bool success = await Provider.of<UserProvider>(
-          context,
+          context, // context: để truy cập vào trạng thái của widget
           listen: false,
         ).login(_emailController.text.trim(), _passwordController.text);
 
@@ -43,6 +47,8 @@ class _LoginScreenState extends State {
             (route) => false,
           );
         } else {
+
+          // showSnackBar: hiển thị thông báo lỗi
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Email hoặc mật khẩu không đúng'),
@@ -58,7 +64,6 @@ class _LoginScreenState extends State {
           ),
         );
       }
-
       setState(() {
         _isLoading = false;
       });
@@ -67,7 +72,7 @@ class _LoginScreenState extends State {
 
   void _forgotPassword() {
     Navigator.of(
-      context,
+      context, 
     ).push(MaterialPageRoute(builder: (context) => ForgotPasswordScreen()));
   }
 
@@ -75,11 +80,12 @@ class _LoginScreenState extends State {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: SingleChildScrollView( 
           padding: EdgeInsets.all(24.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start, 
             children: [
+              // SizedBox: khoảng cách giữa các widget
               SizedBox(height: 60),
               Text(
                 'Chào mừng bạn đến với MasterQuiz!',
@@ -124,6 +130,7 @@ class _LoginScreenState extends State {
                         if (value == null || value.isEmpty) {
                           return 'Vui lòng nhập email của bạn';
                         }
+                        // RegExp: kiểm tra định dạng email
                         if (!RegExp(
                           r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
                         ).hasMatch(value)) {
@@ -145,9 +152,11 @@ class _LoginScreenState extends State {
                                 ? Icons.visibility_off
                                 : Icons.visibility,
                           ),
+                  
                           onPressed: () {
-                            setState(() {
+                            setState(() {                            
                               _obscurePassword = !_obscurePassword;
+                              
                             });
                           },
                         ),

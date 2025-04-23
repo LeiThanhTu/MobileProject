@@ -1,4 +1,6 @@
+// kết quả của câu hỏi trong kỳ thi
 class ExamQuestionResult {
+  // ?: có thể null
   final int? id;
   final int examResultId;
   final int questionId;
@@ -12,7 +14,7 @@ class ExamQuestionResult {
     required this.userAnswer,
     required this.correctAnswer,
   });
-
+// chuyển đổi đối tượng thành map lưu vào database
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -22,7 +24,7 @@ class ExamQuestionResult {
       'correct_answer': correctAnswer,
     };
   }
-
+// tạo lại đối tượng từ map lấy từ database
   factory ExamQuestionResult.fromMap(Map<String, dynamic> map) {
     return ExamQuestionResult(
       id: map['id'],
@@ -33,3 +35,4 @@ class ExamQuestionResult {
     );
   }
 }
+// Map là một kiểu dữ liệu dùng để lưu trữ dữ liệu theo cặp "key - value"

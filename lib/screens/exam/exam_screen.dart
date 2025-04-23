@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:test/providers/user_provider.dart';
 import 'package:test/screens/exam/exam_test_screen.dart';
 
+// StatelessWidget: Widget không có trạng thái
 class ExamScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -122,6 +123,7 @@ class ExamScreen extends StatelessWidget {
       child: Row(
         children: [
           Container(
+            // EdgeInsets: khoảng cách giữa các widget
             padding: EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),

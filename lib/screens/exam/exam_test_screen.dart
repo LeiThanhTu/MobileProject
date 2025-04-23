@@ -19,7 +19,7 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   List<Question> _questions = [];
   Map<int, String> _userAnswers = {};
-  Map<int, bool> _flaggedQuestions = {};
+  Map<int, bool> _flaggedQuestions = {}; 
   int _currentQuestionIndex = 0;
   int _timeLeft = 1800; // 30 phút
   late Timer _timer;
@@ -35,7 +35,7 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
   @override
   void dispose() {
     _timer.cancel();
-    super.dispose();
+    super.dispose(); 
   }
 
   Future<void> _loadQuestions() async {
@@ -47,6 +47,7 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
 
   void _startTimer() {
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      // setState: cập nhật trạng thái của widget
       setState(() {
         if (_timeLeft > 0) {
           _timeLeft--;
@@ -181,7 +182,6 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
           throw dbError;
         }
       }
-
       if (!mounted) return;
 
       // Hiển thị kết quả với dialog mới
@@ -395,6 +395,7 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.05),
+                  // Offset: khoảng cách giữa các widget
                   offset: Offset(0, -2),
                   blurRadius: 5,
                 ),
@@ -489,6 +490,7 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
     final isSelected = _userAnswers[_currentQuestionIndex] == answer;
 
     return GestureDetector(
+      // onTap: khi người dùng nhấn vào widget
       onTap: () => _selectAnswer(answer),
       child: Container(
         width: double.infinity,
@@ -561,6 +563,9 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
           Icon(Icons.timer, color: Colors.white, size: 16),
           SizedBox(width: 4),
           Text(
+            // ~/: chia lấy phần nguyên
+            // %: chia lấy phần dư
+            // toString().padLeft(2, '0'): chuyển số thành chuỗi và thêm 0 vào trước nếu cần  
             '${_timeLeft ~/ 60}:${(_timeLeft % 60).toString().padLeft(2, '0')}',
             style: GoogleFonts.poppins(
               color: Colors.white,
@@ -593,6 +598,7 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
           ),
           actions: [
             TextButton(
+        
               onPressed: () {
                 Navigator.of(context).pop(false);
               },
@@ -625,6 +631,7 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
               ),
             ),
           ],
+      
           actionsPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         );
       },

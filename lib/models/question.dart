@@ -52,7 +52,9 @@ class Question {
     String? explanation,
     String? imageUrl,
   }) {
+
     return Question(
+      // nếu id không null thì sử dụng id của đối tượng hiện tại, nếu null thì sử dụng id của đối tượng mới
       id: id ?? this.id,
       categoryId: categoryId ?? this.categoryId,
       text: text ?? this.text,

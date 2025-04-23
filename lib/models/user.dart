@@ -30,9 +30,10 @@ class User {
       password: map['password'] as String,
     );
   }
-
+// tạo bản sao của đối tượng User
   User copyWith({int? id, String? username, String? email, String? password}) {
     return User(
+      // nếu id không null thì sử dụng id của đối tượng hiện tại, nếu null thì sử dụng id của đối tượng mới
       id: id ?? this.id,
       username: username ?? this.username,
       email: email ?? this.email,

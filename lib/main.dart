@@ -30,6 +30,7 @@ void main() async {
 
     // Kiểm tra trạng thái onboarding
     final prefs = await SharedPreferences.getInstance();
+  
     final hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
 
     // Khởi tạo các services theo thứ tự

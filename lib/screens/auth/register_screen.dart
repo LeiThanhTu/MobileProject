@@ -292,6 +292,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         TextButton(
                           onPressed: () {
+                        // Navigator.of(context).pop(): đóng màn hình hiện tại và trở lại màn hình trước đó
                             Navigator.of(context).pop();
                           },
                           style: TextButton.styleFrom(

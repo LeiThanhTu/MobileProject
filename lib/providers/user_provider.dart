@@ -2,68 +2,86 @@ import 'package:flutter/foundation.dart';
 import 'package:test/database/database_helper.dart';
 import 'package:test/models/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class UserProvider with ChangeNotifier {
   User? _currentUser;
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   bool _isLoggedIn = false;
 
+  // FlutterSecureStorage: lưu trữ dữ liệu bảo mật trong thiết bị
+  final _secureStorage = const FlutterSecureStorage();
+ 
+  final _prefs = SharedPreferences.getInstance();
+
   User? get currentUser => _currentUser;
-  bool get isLoggedIn => _isLoggedIn;
+  bool get isLoggedIn => _isLoggedIn; //
 
   UserProvider() {
     checkLoginStatus();
   }
 
   Future checkLoginStatus() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    int? userId = prefs.getInt('userId');
-    String? userEmail = prefs.getString('userEmail');
-    String? password = prefs.getString('password');
-    if (userId != null && userEmail != null && password != null) {
-      User? user = await _dbHelper.getUser(userEmail, password);
-      if (user != null) {
-        _currentUser = user;
-        _isLoggedIn = true;
-        notifyListeners();
+    try {
+      final prefs = await _prefs;
+      final userId = prefs.getInt('userId');
+      final userEmail = prefs.getString('userEmail');
+      // Lấy mật khẩu từ FlutterSecureStorage
+      final password = await _secureStorage.read(key: 'password');
+
+      if (userId != null && userEmail != null && password != null) {
+        User? user = await _dbHelper.getUser(userEmail, password);
+        if (user != null) {
+          _currentUser = user;
+          _isLoggedIn = true;
+          notifyListeners(); 
+        }
       }
+    } catch (e) {
+      print('Error checking login status: $e');
+      // Xóa thông tin đăng nhập nếu có lỗi
+      await logout();
     }
   }
 
   Future<bool> login(String email, String password) async {
-    User? user = await _dbHelper.getUser(email, password);
+    try {
+      User? user = await _dbHelper.getUser(email, password);
 
-    if (user != null) {
-      _currentUser = user;
-      _isLoggedIn = true;
+      if (user != null) {
+        _currentUser = user;
+        _isLoggedIn = true;
 
-      // Save login status to shared preferences
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      prefs.setInt('userId', user.id!);
-      prefs.setString('userEmail', user.email);
-      prefs.setString('password', user.password);
+        // Lưu thông tin đăng nhập
+        final prefs = await _prefs;
+        await prefs.setInt('userId', user.id!);
+        await prefs.setString('userEmail', user.email);
+        await _secureStorage.write(key: 'password', value: password);
 
-      notifyListeners();
-      return true;
+        notifyListeners(); 
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print('Error during login: $e');
+      return false;
     }
-    return false;
   }
 
   Future<bool> register(String name, String email, String password) async {
     try {
       User user = User(username: name, email: email, password: password);
-
       User createdUser = await _dbHelper.createUser(user);
+
       if (createdUser.id != null) {
         _currentUser = createdUser;
         _isLoggedIn = true;
 
-        // Save login status to shared preferences
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        prefs.setInt('userId', createdUser.id!);
-        prefs.setString('userEmail', email);
-        prefs.setString('password', password);
+        // Lưu thông tin đăng nhập
+        final prefs = await _prefs;
+        await prefs.setInt('userId', createdUser.id!);
+        await prefs.setString('userEmail', email);
+        await _secureStorage.write(key: 'password', value: password);
 
         notifyListeners();
         return true;
@@ -76,14 +94,19 @@ class UserProvider with ChangeNotifier {
   }
 
   Future logout() async {
-    _currentUser = null;
-    _isLoggedIn = false;
+    try {
+      _currentUser = null;
+      _isLoggedIn = false;
 
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.remove('userId');
-    prefs.remove('userEmail');
-    prefs.remove('password');
+      // Xóa thông tin đăng nhập
+      final prefs = await _prefs;
+      await prefs.remove('userId');
+      await prefs.remove('userEmail');
+      await _secureStorage.delete(key: 'password');
 
-    notifyListeners();
+      notifyListeners(); 
+    } catch (e) {
+      print('Error during logout: $e');
+    }
   }
 }

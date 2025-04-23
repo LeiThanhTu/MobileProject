@@ -19,7 +19,7 @@ class DatabaseHelper {
   static Database? _database;  // _database là biến static để lưu trữ kết nối db
 
   DatabaseHelper._init();
-
+// Phương thức get database kiểm tra nếu database chưa được khởi tạo thì sẽ khởi tạo mới
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDB('db.db');

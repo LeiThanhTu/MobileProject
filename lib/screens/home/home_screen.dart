@@ -10,9 +10,9 @@ class HomeScreen extends StatefulWidget {
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
-
 class _HomeScreenState extends State {
   int _selectedIndex = 0;
+  
   final List<Widget> _screens = [
     CategoriesScreen(),
     ResultsScreen(),

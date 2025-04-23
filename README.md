@@ -2,7 +2,7 @@
 
 ## :paintbrush: Thiết kế giao diện
 
-[Xem link thiết kế tại đây](https://www.figma.com/design/jtcYdagzvkPSPk72htkyDT/Thi%E1%BA%BFt-k%E1%BA%BF-%E1%BB%A9ng-d%E1%BB%A5ng-%C3%B4n-t%E1%BA%ADp-Quiz?node-id=0-1&p=f&t=urn6yRDJhGwT7G7K-0)
+[Xem link thiết kế tại đây](https://www.figma.com/design/mBJAcoPRRvZR9gk1mZ8jt5/Thi%E1%BA%BFt-b%E1%BB%8B-di-%C4%91%E1%BB%99ng?node-id=0-1&p=f&t=eaflydGQ5UxM5Mn7-0)
 
 ## :memo: Tính năng chính
 
@@ -30,7 +30,3 @@ flutter pub get
 ```bash
 flutter run
 ```
-
-
-
-
