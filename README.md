@@ -21,7 +21,7 @@ bài (xem chi tiết, làm lại nếu chưa đạt).
 | ![Screenshot 1](assets/screenshots/h2.jpg) | !
 [Screenshot 2](assets/screenshots/h1.jpg) | !
 [Screenshot 3](assets/screenshots/h3.jpg) |
-|---|---|---|---|
+|---|---|---|
 | ![Screenshot 4](assets/screenshots/h4.jpg) | !
 [Screenshot 5](assets/screenshots/h5.jpg) | !
 [Screenshot 6](assets/screenshots/h6.jpg) |
