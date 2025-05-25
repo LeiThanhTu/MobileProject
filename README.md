@@ -18,12 +18,6 @@ bài (xem chi tiết, làm lại nếu chưa đạt).
 
 ## 📸 Screenshots
 
-| ![Screenshot 1](assets/screenshots/h2.jpg) | ![Screenshot 2](assets/screenshots/h1.jpg) | ![Screenshot 3](assets/screenshots/h3.jpg) |
-|---|---|---|
-| ![Screenshot 4](assets/screenshots/h4.jpg) | ![Screenshot 5](assets/screenshots/h5.jpg) | ![Screenshot 6](assets/screenshots/h6.jpg) |
-| ![Screenshot 7](assets/screenshots/hinh6.1.jpg) | ![Screenshot 8](assets/screenshots/h7.jpg) | ![Screenshot 9](assets/screenshots/h8.jpg) |
-| ![Screenshot 10](assets/screenshots/h9.jpg) | ![Screenshot 11](assets/screenshots/hinh9.1.jpg) | ![Screenshot 12](assets/screenshots/h10.jpg) |
-
 ## 🛠️ Công nghệ sử dụng
 
 - Ngôn ngữ lập trình: Flutter/Dart
