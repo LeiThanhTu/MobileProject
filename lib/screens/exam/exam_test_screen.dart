@@ -19,7 +19,7 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   List<Question> _questions = [];
   Map<int, String> _userAnswers = {};
-  Map<int, bool> _flaggedQuestions = {}; 
+  Map<int, bool> _flaggedQuestions = {};
   int _currentQuestionIndex = 0;
   int _timeLeft = 1800; // 30 phút
   late Timer _timer;
@@ -35,7 +35,7 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
   @override
   void dispose() {
     _timer.cancel();
-    super.dispose(); 
+    super.dispose();
   }
 
   Future<void> _loadQuestions() async {
@@ -116,7 +116,16 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
 
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final user = userProvider.currentUser;
-    if (user == null) return;
+    if (user == null || user.id == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Vui lòng đăng nhập để lưu kết quả thi'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     try {
       // Kiểm tra user có tồn tại trong database không
@@ -193,6 +202,8 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
           totalQuestions: _questions.length,
         ),
       );
+      // Sau khi đóng dialog, pop màn hình thi thử để quay về màn hình cha có BottomNavigationBar
+      if (mounted) Navigator.of(context).pop();
     } catch (e) {
       print('Error saving exam result: $e');
       if (!mounted) return;
@@ -565,7 +576,7 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
           Text(
             // ~/: chia lấy phần nguyên
             // %: chia lấy phần dư
-            // toString().padLeft(2, '0'): chuyển số thành chuỗi và thêm 0 vào trước nếu cần  
+            // toString().padLeft(2, '0'): chuyển số thành chuỗi và thêm 0 vào trước nếu cần
             '${_timeLeft ~/ 60}:${(_timeLeft % 60).toString().padLeft(2, '0')}',
             style: GoogleFonts.poppins(
               color: Colors.white,
@@ -598,7 +609,6 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
           ),
           actions: [
             TextButton(
-        
               onPressed: () {
                 Navigator.of(context).pop(false);
               },
@@ -631,7 +641,6 @@ class _ExamTestScreenState extends State<ExamTestScreen> {
               ),
             ),
           ],
-      
           actionsPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         );
       },

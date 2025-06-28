@@ -6,7 +6,6 @@ class Result {
   final int score;
   final int totalQuestions;
   final String date;
-  final String createdAt;
   String? categoryName;
 
   Result({
@@ -16,7 +15,6 @@ class Result {
     required this.score,
     required this.totalQuestions,
     required this.date,
-    required this.createdAt,
     this.categoryName,
   });
 
@@ -38,7 +36,6 @@ class Result {
       score: map['score'] as int,
       totalQuestions: map['total_questions'] as int,
       date: map['date'] as String,
-      createdAt: map['date'] as String,
       categoryName: map['category_name'] as String?,
     );
   }
@@ -50,7 +47,6 @@ class Result {
     int? score,
     int? totalQuestions,
     String? date,
-    String? createdAt,
     String? categoryName,
   }) {
     return Result(
@@ -60,7 +56,6 @@ class Result {
       score: score ?? this.score,
       totalQuestions: totalQuestions ?? this.totalQuestions,
       date: date ?? this.date,
-      createdAt: createdAt ?? this.createdAt,
       categoryName: categoryName ?? this.categoryName,
     );
   }

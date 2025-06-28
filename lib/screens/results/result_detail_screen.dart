@@ -4,6 +4,7 @@ import 'package:test/database/database_helper.dart';
 import 'package:confetti/confetti.dart';
 import 'package:test/models/question_result.dart';
 import 'package:test/screens/quizz/question_detail_screen.dart';
+import 'package:test/services/ai_service.dart';
 
 class ResultDetailScreen extends StatefulWidget {
   final int resultId;
@@ -54,8 +55,8 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
         backgroundColor: Colors.transparent,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios, color: Colors.indigo[600]),
-          onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst)
-,
+          onPressed: () =>
+              Navigator.of(context).popUntil((route) => route.isFirst),
         ),
         title: Text(
           'Kết quả',
@@ -148,60 +149,72 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
       resultIcon = Icons.school;
     }
 
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
-        padding: EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+    return Column(
+      children: [
+        Card(
+          elevation: 4,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Padding(
+            padding: EdgeInsets.all(20),
+            child: Column(
               children: [
-                Icon(resultIcon, size: 32, color: resultColor),
-                SizedBox(width: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(resultIcon, size: 32, color: resultColor),
+                    SizedBox(width: 10),
+                    Text(
+                      resultMessage,
+                      style: GoogleFonts.poppins(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: resultColor,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20),
                 Text(
-                  resultMessage,
+                  '${widget.categoryName} Quiz',
                   style: GoogleFonts.poppins(
-                    fontSize: 24,
+                      fontSize: 16, color: Colors.grey[600]),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  '$percentage%',
+                  style: GoogleFonts.poppins(
+                    fontSize: 48,
                     fontWeight: FontWeight.bold,
                     color: resultColor,
                   ),
                 ),
+                Text(
+                  'Score: ${widget.score}/${widget.totalQuestions}',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: 20),
+                LinearProgressIndicator(
+                  value: widget.score / widget.totalQuestions,
+                  backgroundColor: Colors.grey[200],
+                  valueColor: AlwaysStoppedAnimation<Color>(resultColor),
+                  minHeight: 10,
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                SizedBox(height: 24),
+                _AIFeedbackSection(
+                  score: widget.score,
+                  totalQuestions: widget.totalQuestions,
+                  categoryName: widget.categoryName,
+                ),
               ],
             ),
-            SizedBox(height: 20),
-            Text(
-              '${widget.categoryName} Quiz',
-              style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey[600]),
-            ),
-            SizedBox(height: 20),
-            Text(
-              '$percentage%',
-              style: GoogleFonts.poppins(
-                fontSize: 48,
-                fontWeight: FontWeight.bold,
-                color: resultColor,
-              ),
-            ),
-            Text(
-              'Score: ${widget.score}/${widget.totalQuestions}',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            SizedBox(height: 20),
-            LinearProgressIndicator(
-              value: widget.score / widget.totalQuestions,
-              backgroundColor: Colors.grey[200],
-              valueColor: AlwaysStoppedAnimation<Color>(resultColor),
-              minHeight: 10,
-              borderRadius: BorderRadius.circular(5),
-            ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -218,13 +231,12 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder:
-                    (context) => QuestionDetailScreen(
-                      questionId: result.questionId,
-                      userAnswer: result.userAnswer,
-                      correctAnswer: result.correctAnswer,
-                      questionIndex: questionNumber - 1,
-                    ),
+                builder: (context) => QuestionDetailScreen(
+                  questionId: result.questionId,
+                  userAnswer: result.userAnswer,
+                  correctAnswer: result.correctAnswer,
+                  questionIndex: questionNumber - 1,
+                ),
               ),
             );
           },
@@ -255,10 +267,9 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
                             '$questionNumber',
                             style: GoogleFonts.poppins(
                               fontWeight: FontWeight.bold,
-                              color:
-                                  isCorrect
-                                      ? Colors.green[800]
-                                      : Colors.red[800],
+                              color: isCorrect
+                                  ? Colors.green[800]
+                                  : Colors.red[800],
                             ),
                           ),
                         ),
@@ -281,10 +292,9 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
                               children: [
                                 Icon(
                                   isCorrect ? Icons.check_circle : Icons.cancel,
-                                  color:
-                                      isCorrect
-                                          ? Colors.green[600]
-                                          : Colors.red[600],
+                                  color: isCorrect
+                                      ? Colors.green[600]
+                                      : Colors.red[600],
                                   size: 18,
                                 ),
                                 SizedBox(width: 8),
@@ -292,10 +302,9 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
                                   isCorrect ? 'Đúng' : 'Sai',
                                   style: GoogleFonts.poppins(
                                     fontWeight: FontWeight.w500,
-                                    color:
-                                        isCorrect
-                                            ? Colors.green[600]
-                                            : Colors.red[600],
+                                    color: isCorrect
+                                        ? Colors.green[600]
+                                        : Colors.red[600],
                                   ),
                                 ),
                                 Spacer(),
@@ -317,6 +326,92 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
           ),
         );
       },
+    );
+  }
+}
+
+// Widget hiển thị gợi ý AI
+class _AIFeedbackSection extends StatefulWidget {
+  final int score;
+  final int totalQuestions;
+  final String categoryName;
+  const _AIFeedbackSection(
+      {Key? key,
+      required this.score,
+      required this.totalQuestions,
+      required this.categoryName})
+      : super(key: key);
+
+  @override
+  State<_AIFeedbackSection> createState() => _AIFeedbackSectionState();
+}
+
+class _AIFeedbackSectionState extends State<_AIFeedbackSection> {
+  String? _aiFeedback;
+  bool _loading = false;
+
+  Future<void> _getAIFeedback() async {
+    setState(() {
+      _loading = true;
+      _aiFeedback = null;
+    });
+    final aiService = AIService();
+    final prompt =
+        'Tôi vừa làm bài kiểm tra chủ đề "${widget.categoryName}" với kết quả ${widget.score}/${widget.totalQuestions}. Hãy nhận xét kết quả này và gợi ý giúp tôi nên học gì tiếp theo. Trả lời ngắn gọn, súc tích, bằng tiếng Việt.';
+    final response = await aiService.sendMessage(prompt);
+    setState(() {
+      _aiFeedback = response;
+      _loading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ElevatedButton.icon(
+          onPressed: _loading ? null : _getAIFeedback,
+          icon: const Icon(Icons.psychology_rounded),
+          label: const Text('🧠 Gợi ý từ AI'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.indigo[600],
+            foregroundColor: Colors.white,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+        if (_loading)
+          const Padding(
+            padding: EdgeInsets.all(12),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+        if (_aiFeedback != null)
+          Container(
+            margin: const EdgeInsets.only(top: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.indigo[50],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.indigo.shade100),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.smart_toy_rounded,
+                    color: Colors.indigo, size: 28),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    _aiFeedback!,
+                    style: GoogleFonts.poppins(
+                        fontSize: 15, color: Colors.indigo[900]),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }

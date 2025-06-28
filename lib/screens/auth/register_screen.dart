@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:test/providers/user_provider.dart';
 import 'package:test/screens/home/home_screen.dart';
 import 'package:test/screens/auth/login_screen.dart';
+import 'package:test/services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -37,16 +38,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
       });
 
       try {
-        bool success = await Provider.of<UserProvider>(
-          context,
-          listen: false,
-        ).register(
-          _nameController.text.trim(),
+        final authService = Provider.of<AuthService>(context, listen: false);
+        String? error = await authService.register(
           _emailController.text.trim(),
           _passwordController.text,
+          _nameController.text.trim(),
         );
-
-        if (success) {
+        if (error == null) {
+          await Provider.of<UserProvider>(context, listen: false)
+              .checkLoginStatus();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Đăng ký thành công! Vui lòng đăng nhập'),
@@ -59,7 +59,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Registration failed. Email might be in use.'),
+              content: Text(error),
               backgroundColor: Colors.red,
             ),
           );
@@ -67,7 +67,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('An error occurred: $e'),
+            content: Text('Đã xảy ra lỗi: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -266,20 +266,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           elevation: 0,
                         ),
-                        child:
-                            _isLoading
-                                ? CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
-                                  ),
-                                )
-                                : Text(
-                                  'Đăng ký',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                        child: _isLoading
+                            ? CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
                                 ),
+                              )
+                            : Text(
+                                'Đăng ký',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                       ),
                     ),
                     SizedBox(height: 20),
@@ -292,7 +291,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         TextButton(
                           onPressed: () {
-                        // Navigator.of(context).pop(): đóng màn hình hiện tại và trở lại màn hình trước đó
+                            // Navigator.of(context).pop(): đóng màn hình hiện tại và trở lại màn hình trước đó
                             Navigator.of(context).pop();
                           },
                           style: TextButton.styleFrom(

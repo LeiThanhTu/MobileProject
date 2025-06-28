@@ -16,7 +16,7 @@ import 'dart:typed_data';
 // khởi tạo database
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
-  static Database? _database;  // _database là biến static để lưu trữ kết nối db
+  static Database? _database; // _database là biến static để lưu trữ kết nối db
 
   DatabaseHelper._init();
 // Phương thức get database kiểm tra nếu database chưa được khởi tạo thì sẽ khởi tạo mới
@@ -69,8 +69,31 @@ class DatabaseHelper {
       print('Opening database...');
       final db = await openDatabase(
         path,
+        version: 2,
         readOnly: false,
         singleInstance: true,
+        onCreate: (db, version) async {
+          // Tạo bảng users với các cột mới
+          print('Created users table with new columns');
+        },
+        onUpgrade: (db, oldVersion, newVersion) async {
+          if (oldVersion < 2) {
+            // Thêm các cột mới vào bảng users
+            try {
+              await db.execute('ALTER TABLE users ADD COLUMN displayName TEXT');
+              print('Added displayName column to users table');
+            } catch (e) {
+              print('displayName column might already exist: $e');
+            }
+
+            try {
+              await db.execute('ALTER TABLE users ADD COLUMN photoURL TEXT');
+              print('Added photoURL column to users table');
+            } catch (e) {
+              print('photoURL column might already exist: $e');
+            }
+          }
+        },
       );
 
       // Kiểm tra cấu trúc database
@@ -178,6 +201,33 @@ class DatabaseHelper {
       return rowsAffected > 0;
     } catch (e) {
       print('Error updating password: $e');
+      return false;
+    }
+  }
+
+  // Cập nhật thông tin người dùng
+  Future<bool> updateUser(User user) async {
+    final db = await database;
+    try {
+      final updateData = {
+        'username': user.username,
+        'displayName': user.displayName,
+        'photoURL': user.photoURL,
+        'provider': user.provider
+      };
+      if (user.password != null) {
+        updateData['password'] = user.password;
+      }
+      final rowsAffected = await db.update(
+        'users',
+        updateData,
+        where: 'email = ?',
+        whereArgs: [user.email],
+      );
+      print('Updated user: ${user.email}, rows affected: $rowsAffected');
+      return rowsAffected > 0;
+    } catch (e) {
+      print('Error updating user: $e');
       return false;
     }
   }

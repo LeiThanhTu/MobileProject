@@ -106,12 +106,10 @@ class NotificationService {
       debugPrint('Error showing welcome notification: $e');
     }
   }
-
   Future<void> scheduleStudyReminder() async {
     if (!_initialized) {
       await initialize();
     }
-
     try {
       // Hủy thông báo cũ nếu có
       await _notifications.cancel(1);
