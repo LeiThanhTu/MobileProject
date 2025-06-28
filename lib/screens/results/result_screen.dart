@@ -84,92 +84,98 @@ class _ResultsScreenState extends State<ResultsScreen> {
     }).toList();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context);
-    final userId = userProvider.currentUser?.id;
+ @override
+Widget build(BuildContext context) {
+  final userProvider = Provider.of<UserProvider>(context);
+  final userId = userProvider.currentUser?.id;
+
+  if (userProvider.isLoading) {
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
+    );
+  }
 
     return Scaffold(
-      body: userId == null
-          ? Center(
-              child: Text(
-                'Vui lòng đăng nhập để xem kết quả',
-                style: GoogleFonts.poppins(fontSize: 16),
+      body: SafeArea(
+        child: Column(
+          children: [
+            AppBar(
+              title: Text(
+                'Kết quả của tôi',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.indigo[800],
+                ),
               ),
-            )
-          : SafeArea(
-              child: Column(
-                children: [
-                  AppBar(
-                    title: Text(
-                      'Kết quả của tôi',
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.indigo[800],
-                      ),
-                    ),
-                    centerTitle: true,
-                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                    elevation: 0,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: CustomSearchBar(
-                      hintText: 'Tìm kiếm theo môn học...',
-                      onChanged: (value) {
-                        setState(() {
-                          _searchQuery = value;
-                        });
-                      },
-                    ),
-                  ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(18),
-                            child: Text(
-                              'Kết quả ôn tập',
-                              style: GoogleFonts.poppins(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.indigo[800],
-                              ),
-                            ),
-                          ),
-                          _buildQuizResults(userId),
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Text(
-                              'Kết quả thi thử',
-                              style: GoogleFonts.poppins(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.indigo[800],
-                              ),
-                            ),
-                          ),
-                          _buildExamResults(userId),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+              centerTitle: true,
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              elevation: 0,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: CustomSearchBar(
+                hintText: 'Tìm kiếm theo môn học...',
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
               ),
             ),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Text(
+                        'Kết quả ôn tập',
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.indigo[800],
+                        ),
+                      ),
+                    ),
+                    _buildQuizResults(userId ?? -1),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        'Kết quả thi thử',
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.indigo[800],
+                        ),
+                      ),
+                    ),
+                    _buildExamResults(userId ?? -1),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildQuizResults(int userId) {
+    if (userId == null || userId <= 0) {
+      return Center(
+        child: Text(
+          'Vui lòng đăng nhập để xem kết quả',
+          style: GoogleFonts.poppins(fontSize: 16),
+        ),
+      );
+    }
     return FutureBuilder<List<Result>>(
       future: DatabaseHelper.instance.getResultsByUser(userId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-
         if (snapshot.hasError) {
           return Center(
             child: Text(
@@ -178,9 +184,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
             ),
           );
         }
-
         final results = _filterResults(snapshot.data ?? []);
-
         if (results.isEmpty) {
           if (_searchQuery.isNotEmpty) {
             return Center(

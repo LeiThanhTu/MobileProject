@@ -5,6 +5,15 @@ CREATE TABLE IF NOT EXISTS categories (
   description TEXT,
   imageUrl TEXT
 );
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email TEXT NOT NULL UNIQUE,
+  username TEXT NOT NULL,
+  password TEXT,
+  displayName TEXT,
+  photoURL TEXT,
+  provider TEXT DEFAULT 'email'
+);
 CREATE TABLE IF NOT EXISTS exam_question_results (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   exam_result_id INTEGER,
@@ -60,12 +69,6 @@ CREATE TABLE IF NOT EXISTS user_progress (
   review_date DATETIME,
   FOREIGN KEY (user_id) REFERENCES users (id),
   FOREIGN KEY (question_id) REFERENCES questions (id)
-);
-CREATE TABLE IF NOT EXISTS users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  username TEXT NOT NULL,
-  email TEXT NOT NULL UNIQUE,
-  password TEXT NOT NULL
 );
 -- Categories
 INSERT INTO "categories" ("id","name","description","imageUrl") VALUES

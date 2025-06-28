@@ -103,57 +103,128 @@ class _QuizScreenState extends State<QuizScreen> {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final user = userProvider.currentUser;
 
-    if (user != null) {
-      final now = DateTime.now();
-      final result = Result(
-        userId: user.id!,
-        categoryId: widget.category.id,
-        score: _score,
-        totalQuestions: widget.questions.length,
-        date: now.toIso8601String(),
-        createdAt: now.toIso8601String(),
+    if (user == null || user.id == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Vui lòng đăng nhập để lưu kết quả'),
+          backgroundColor: Colors.red,
+        ),
       );
+      return;
+    }
 
-      try {
-        final resultId = await _dbHelper.insertResult(result);
-        print('Result saved with ID: $resultId'); // Debug log
+    final now = DateTime.now();
+    final result = Result(
+      userId: user.id!,
+      categoryId: widget.category.id,
+      score: _score,
+      totalQuestions: widget.questions.length,
+      date: now.toIso8601String(),
+    );
 
-        // Save individual question results
-        for (var entry in _userAnswers.entries) {
-          final question = widget.questions.firstWhere(
-            (q) => q.id == entry.key,
-          );
-          await _dbHelper.saveQuestionResult(
-            resultId,
-            entry.key,
-            entry.value,
-            question.correctAnswer,
-          );
-        }
+    try {
+      // Lưu kết quả chính
+      final resultId = await _dbHelper.insertResult(result);
+      print('Result saved with ID: $resultId'); // Debug log
 
-        if (!mounted) return;
-
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => ResultDetailScreen(
-              resultId: resultId,
-              categoryName: widget.category.name,
-              score: _score,
-              totalQuestions: widget.questions.length,
-            ),
-          ),
+      // Lưu kết quả từng câu hỏi
+      for (var entry in _userAnswers.entries) {
+        final question = widget.questions.firstWhere(
+          (q) => q.id == entry.key,
+          orElse: () => throw Exception('Question not found: ${entry.key}'),
         );
-      } catch (e) {
-        print('Error saving result: $e'); // Debug log
-        if (!mounted) return;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error saving result: $e'),
-            backgroundColor: Colors.red,
-          ),
+        await _dbHelper.saveQuestionResult(
+          resultId,
+          entry.key,
+          entry.value,
+          question.correctAnswer,
         );
       }
+
+      if (!mounted) return;
+
+      // Hiển thị kết quả
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: Text(
+            'Kết quả',
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.bold,
+              color: Colors.indigo[800],
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Điểm số: $_score/${widget.questions.length}',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Tỷ lệ đúng: ${((_score / widget.questions.length) * 100).toStringAsFixed(1)}%',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) => ResultDetailScreen(
+                      resultId: resultId,
+                      categoryName: widget.category.name,
+                      score: _score,
+                      totalQuestions: widget.questions.length,
+                    ),
+                  ),
+                );
+              },
+              child: Text(
+                'Xem chi tiết',
+                style: GoogleFonts.poppins(
+                  color: Colors.indigo,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Quay lại màn hình trước
+              },
+              child: Text(
+                'Đóng',
+                style: GoogleFonts.poppins(
+                  color: Colors.grey[600],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      print('Error saving result: $e'); // Debug log
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Có lỗi xảy ra khi lưu kết quả: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 

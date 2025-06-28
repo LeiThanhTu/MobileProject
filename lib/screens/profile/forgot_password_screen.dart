@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:test/database/database_helper.dart';
+import 'package:test/services/auth_service.dart';
 import 'package:test/services/email_service.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -15,6 +16,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
+  final _authService = AuthService();
 
   Future<void> _resetPassword() async {
     if (!_formKey.currentState!.validate()) return;
@@ -36,51 +38,43 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         return;
       }
 
-      // Tạo mật khẩu tạm thời
-      final tempPassword = _generateTempPassword();
-
-      // Cập nhật mật khẩu mới vào database
-      final success = await dbHelper.updatePassword(
-        _emailController.text.trim(),
-        tempPassword,
-      );
-
-      if (!success) {
+      // Kiểm tra nếu user đăng nhập bằng Google
+      if (user.provider == 'google') {
         setState(() {
-          _errorMessage = 'Không thể cập nhật mật khẩu. Vui lòng thử lại sau.';
+          _errorMessage =
+              'Tài khoản này đăng nhập bằng Google. Vui lòng đăng nhập lại bằng Google.';
           _isLoading = false;
         });
         return;
       }
 
+      // Gửi email reset password
+      await _authService.resetPassword(_emailController.text.trim());
+
       if (!mounted) return;
 
-      // Hiển thị mật khẩu tạm thời
-      await EmailService.showPasswordResetDialog(context, tempPassword);
+      // Hiển thị thông báo thành công
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'Đã gửi email hướng dẫn đặt lại mật khẩu. Vui lòng kiểm tra email của bạn.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // Quay lại màn hình đăng nhập
+      Navigator.pop(context);
     } catch (e) {
       setState(() {
         _errorMessage = 'Có lỗi xảy ra, vui lòng thử lại sau';
       });
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
-  }
-
-  // Hàm tạo mật khẩu tạm thời
-  String _generateTempPassword() {
-    const length = 8;
-    const chars =
-        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    final random = DateTime.now().millisecondsSinceEpoch.toString();
-    var password = '';
-
-    for (var i = 0; i < length; i++) {
-      password += chars[int.parse(random[i % random.length]) % chars.length];
-    }
-
-    return password;
   }
 
   @override
@@ -185,26 +179,25 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                     elevation: 0,
                   ),
-                  child:
-                      _isLoading
-                          ? SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
-                              ),
-                            ),
-                          )
-                          : Text(
-                            'Đặt lại mật khẩu',
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                  child: _isLoading
+                      ? SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
                             ),
                           ),
+                        )
+                      : Text(
+                          'Đặt lại mật khẩu',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
               ],
             ),

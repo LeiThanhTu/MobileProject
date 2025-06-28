@@ -5,6 +5,9 @@ import 'package:test/screens/home/home_screen.dart';
 import 'package:test/screens/auth/register_screen.dart';
 import 'package:test/screens/profile/forgot_password_screen.dart';
 import 'package:test/providers/user_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:test/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -18,6 +21,8 @@ class _LoginScreenState extends State {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   @override
   // dispose: Giải phóng tài nguyên khi widget bị xóa khỏi cây widget (khi màn hình bị đóng)
@@ -27,52 +32,124 @@ class _LoginScreenState extends State {
     super.dispose();
   }
 
+  Future<void> _signInWithGoogle() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      print('Bắt đầu đăng nhập Google');
+
+      // Đăng xuất trước để tránh lỗi
+      await _googleSignIn.signOut();
+
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        print('Người dùng hủy đăng nhập Google');
+        throw Exception('Đăng nhập Google bị hủy');
+      }
+
+      print('Đã lấy được thông tin Google: ${googleUser.email}');
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      print('Đang xác thực với Firebase');
+      final UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
+
+      if (userCredential.user != null) {
+        print(
+            'Đăng nhập Firebase thành công với Google: ${userCredential.user?.uid}');
+
+        final authService = Provider.of<AuthService>(context, listen: false);
+        bool success = await authService.signInWithGoogle();
+
+        if (success) {
+          print('Chuyển hướng đến HomeScreen');
+          await Provider.of<UserProvider>(context, listen: false)
+              .checkLoginStatus();
+          if (mounted) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+              (route) => false,
+            );
+          }
+        } else {
+          throw Exception('Không thể cập nhật thông tin người dùng');
+        }
+      }
+    } catch (e) {
+      print('Lỗi đăng nhập Google: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Đăng nhập Google thất bại: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   Future _login() async {
     if (_formKey.currentState!.validate()) {
-      // setState: cập nhật trạng thái của widget
       setState(() {
         _isLoading = true;
       });
 
       try {
-        // Provider: cung cấp dữ liệu cho các widget con
-        bool success = await Provider.of<UserProvider>(
-          context, // context: để truy cập vào trạng thái của widget
-          listen: false,
-        ).login(_emailController.text.trim(), _passwordController.text);
+        print('Bắt đầu đăng nhập với email: ${_emailController.text.trim()}');
+
+        final authService = Provider.of<AuthService>(context, listen: false);
+        bool success = await authService.login(
+          _emailController.text.trim(),
+          _passwordController.text,
+        );
+
+        print('Kết quả đăng nhập: $success');
 
         if (success) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => HomeScreen()),
-            (route) => false,
-          );
+          print('Chuyển hướng đến HomeScreen');
+          await Provider.of<UserProvider>(context, listen: false)
+              .checkLoginStatus();
+          if (mounted) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+              (route) => false,
+            );
+          }
         } else {
-
-          // showSnackBar: hiển thị thông báo lỗi
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Email hoặc mật khẩu không đúng'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          throw Exception('Đăng nhập thất bại');
         }
       } catch (e) {
+        print('Lỗi đăng nhập: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Đã xảy ra lỗi: $e'),
+            content: Text('Đăng nhập thất bại: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
   void _forgotPassword() {
     Navigator.of(
-      context, 
+      context,
     ).push(MaterialPageRoute(builder: (context) => ForgotPasswordScreen()));
   }
 
@@ -80,10 +157,10 @@ class _LoginScreenState extends State {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView( 
+        child: SingleChildScrollView(
           padding: EdgeInsets.all(24.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start, 
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // SizedBox: khoảng cách giữa các widget
               SizedBox(height: 60),
@@ -152,11 +229,9 @@ class _LoginScreenState extends State {
                                 ? Icons.visibility_off
                                 : Icons.visibility,
                           ),
-                  
                           onPressed: () {
-                            setState(() {                            
+                            setState(() {
                               _obscurePassword = !_obscurePassword;
-                              
                             });
                           },
                         ),
@@ -201,6 +276,34 @@ class _LoginScreenState extends State {
                     SizedBox(
                       width: double.infinity,
                       height: 55,
+                      child: ElevatedButton.icon(
+                        onPressed: _isLoading ? null : _signInWithGoogle,
+                        icon: Image.asset(
+                          'assets/images/google_logo.jpg',
+                          height: 24,
+                        ),
+                        label: Text(
+                          'Đăng nhập bằng Google',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black87,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 55,
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _login,
                         style: ElevatedButton.styleFrom(
@@ -211,20 +314,19 @@ class _LoginScreenState extends State {
                           ),
                           elevation: 0,
                         ),
-                        child:
-                            _isLoading
-                                ? CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation(
-                                    Colors.white,
-                                  ),
-                                )
-                                : Text(
-                                  'Đăng nhập',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                        child: _isLoading
+                            ? CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation(
+                                  Colors.white,
                                 ),
+                              )
+                            : Text(
+                                'Đăng nhập',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                       ),
                     ),
                     SizedBox(height: 20),
